@@ -120,6 +120,7 @@ Core code files:
 Processed data:
 
 - `data/processed/udt_rfd_dataset.csv`
+- `data/processed/udt_rfd_sample.csv`
 
 Results:
 
@@ -212,6 +213,13 @@ Keep discovered rules only if:
 
 - `support >= 0.01`
 - `confidence >= 0.85`
+
+RFD experiment runtime policy:
+
+- keep full cleaned dataset for preprocessing and profiling;
+- use deterministic balanced sample of `1500` rows (`750` per station) for quadratic RFD validation and discovery;
+- save sample to `data/processed/udt_rfd_sample.csv`;
+- if no discovered rule satisfies filtering thresholds, keep `results/rfd_discovered_top10.csv` as header-only and report that outcome explicitly.
 
 ## Interpretation constraints
 

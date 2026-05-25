@@ -1,0 +1,11 @@
+rule_label,lhs,rhs,row_index_1,row_index_2,datetime_1,datetime_2,station_1,station_2,rhs_value_1,rhs_value_2,rhs_abs_diff,PM2.5_1,PM2.5_2,TEMP_1,TEMP_2,WSPM_1,WSPM_2
+"station, PM2.5 -> PM10","station, PM2.5",PM10,36,167,2013-09-01 18:00:00,2013-09-04 12:00:00,Aotizhongxin,Aotizhongxin,103.0,44.0,59.0,43.0,34.0,,,,
+"station, PM2.5 -> PM10","station, PM2.5",PM10,36,236,2013-09-01 18:00:00,2013-09-05 23:00:00,Aotizhongxin,Aotizhongxin,103.0,44.0,59.0,43.0,39.0,,,,
+"station, PM2.5 -> PM10","station, PM2.5",PM10,36,240,2013-09-01 18:00:00,2013-09-06 01:00:00,Aotizhongxin,Aotizhongxin,103.0,48.0,55.0,43.0,39.0,,,,
+"station, PM2.5 -> PM10","station, PM2.5",PM10,36,245,2013-09-01 18:00:00,2013-09-06 04:00:00,Aotizhongxin,Aotizhongxin,103.0,53.0,50.0,43.0,43.0,,,,
+"station, PM2.5 -> PM10","station, PM2.5",PM10,36,247,2013-09-01 18:00:00,2013-09-06 05:00:00,Aotizhongxin,Aotizhongxin,103.0,46.0,57.0,43.0,45.0,,,,
+"station, TEMP, WSPM -> O3","station, TEMP, WSPM",O3,36,129,2013-09-01 18:00:00,2013-09-03 17:00:00,Aotizhongxin,Aotizhongxin,176.0,195.0,19.0,,,26.1,26.1,1.0,1.8
+"station, TEMP, WSPM -> O3","station, TEMP, WSPM",O3,36,133,2013-09-01 18:00:00,2013-09-03 19:00:00,Aotizhongxin,Aotizhongxin,176.0,146.0,30.0,,,26.1,24.6,1.0,0.8
+"station, TEMP, WSPM -> O3","station, TEMP, WSPM",O3,36,137,2013-09-01 18:00:00,2013-09-03 21:00:00,Aotizhongxin,Aotizhongxin,176.0,116.0,60.0,,,26.1,24.3,1.0,0.9
+"station, TEMP, WSPM -> O3","station, TEMP, WSPM",O3,36,139,2013-09-01 18:00:00,2013-09-03 22:00:00,Aotizhongxin,Aotizhongxin,176.0,95.0,81.0,,,26.1,24.1,1.0,1.0
+"station, TEMP, WSPM -> O3","station, TEMP, WSPM",O3,36,218,2013-09-01 18:00:00,2013-09-05 14:00:00,Aotizhongxin,Aotizhongxin,176.0,92.0,84.0,,,26.1,27.4,1.0,0.7

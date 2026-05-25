@@ -1,0 +1,6 @@
+lhs,rhs,rule_label,lhs_length,total_pairs,antecedent_pairs,valid_pairs,violations,support,confidence,violation_rate,interpretation
+"station, PM2.5",PM10,"station, PM2.5 -> PM10",2,1124250,82486,38466,44020,0.0733698020902824,0.46633368086705623,0.5336663191329438,"Within one station, particulate measures should move coherently."
+"station, TEMP, WSPM",O3,"station, TEMP, WSPM -> O3",3,1124250,38931,14995,23936,0.034628418945963975,0.38516863168169324,0.6148313683183068,"Within one station, similar temperature and wind should imply similar O3."
+"hour, NO2",PM2.5,"hour, NO2 -> PM2.5",2,1124250,29529,9360,20169,0.026265510340226818,0.31697653154526056,0.6830234684547394,Similar hour and NO2 levels should often align with similar PM2.5.
+"station, hour, TEMP",NO2,"station, hour, TEMP -> NO2",3,1124250,9720,2466,7254,0.008645763842561709,0.2537037037037037,0.7462962962962962,"Same station, similar hour and temperature should imply similar NO2."
+"station, TEMP, DEWP",PM2.5,"station, TEMP, DEWP -> PM2.5",3,1124250,15439,3127,12312,0.013732710696019569,0.20253902454822204,0.797460975451778,"Within one station, similar thermal conditions should imply similar PM2.5."

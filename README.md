@@ -51,6 +51,9 @@ jupyter notebook notebooks/01_rfd_udt_analysis.ipynb
 Main generated dataset:
 
 - `data/processed/udt_rfd_dataset.csv`
+- `data/processed/udt_rfd_sample.csv`
+
+RFD experiments use deterministic balanced sample of `1500` rows (`750` per station) because pairwise validation is quadratic.
 
 ## RFD metrics
 
@@ -95,9 +98,11 @@ Figures:
 
 - [x] preprocessing pipeline and cleaned dataset
 - [x] profiling exports
-- [ ] RFD validation and discovery
-- [ ] threshold and station experiments
+- [x] RFD validation and discovery
+- [x] threshold and station experiments
 - [ ] notebook final run
+
+If no discovered rule satisfies `support >= 0.01` and `confidence >= 0.85`, `results/rfd_discovered_top10.csv` is exported with headers only and discussed in notebook as negative result.
 
 ## Scope limits
 
