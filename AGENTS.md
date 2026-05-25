@@ -123,6 +123,15 @@ Processed data:
 
 Results:
 
+- `results/profile_shape_summary.csv`
+- `results/profile_dtypes_summary.csv`
+- `results/profile_missing_summary.csv`
+- `results/profile_unique_values_summary.csv`
+- `results/profile_numeric_summary.csv`
+- `results/profile_station_distribution.csv`
+- `results/profile_hour_distribution.csv`
+- `results/profile_time_slot_distribution.csv`
+- `results/profile_correlation_matrix.csv`
 - `results/rfd_candidate_results.csv`
 - `results/rfd_discovered_top10.csv`
 - `results/rfd_threshold_comparison.csv`
@@ -152,6 +161,10 @@ Notebook and modules must produce:
 - NO2 distribution;
 - PM2.5 time series;
 - correlation matrix.
+
+Implementation note:
+
+- PM2.5 time-series figure uses daily mean by station for readability.
 
 ## RFD scope
 

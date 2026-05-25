@@ -1,0 +1,12 @@
+column,dtype
+DEWP,float64
+NO2,float64
+O3,float64
+PM10,float64
+PM2.5,float64
+TEMP,float64
+WSPM,float64
+datetime,datetime64[ns]
+hour,int64
+station,object
+time_slot,object

@@ -1,0 +1,12 @@
+column,unique_values
+datetime,2918
+O3,532
+DEWP,468
+TEMP,398
+PM10,360
+PM2.5,342
+NO2,305
+WSPM,78
+hour,24
+time_slot,4
+station,2

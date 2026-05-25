@@ -66,6 +66,15 @@ RFD confidence measures how often similar tuples on LHS stay similar on RHS. It 
 
 Results:
 
+- `results/profile_shape_summary.csv`
+- `results/profile_dtypes_summary.csv`
+- `results/profile_missing_summary.csv`
+- `results/profile_unique_values_summary.csv`
+- `results/profile_numeric_summary.csv`
+- `results/profile_station_distribution.csv`
+- `results/profile_hour_distribution.csv`
+- `results/profile_time_slot_distribution.csv`
+- `results/profile_correlation_matrix.csv`
 - `results/rfd_candidate_results.csv`
 - `results/rfd_discovered_top10.csv`
 - `results/rfd_threshold_comparison.csv`
@@ -85,7 +94,7 @@ Figures:
 ## Progress
 
 - [x] preprocessing pipeline and cleaned dataset
-- [ ] profiling exports
+- [x] profiling exports
 - [ ] RFD validation and discovery
 - [ ] threshold and station experiments
 - [ ] notebook final run
