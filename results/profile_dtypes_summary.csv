@@ -6,7 +6,7 @@ PM10,float64
 PM2.5,float64
 TEMP,float64
 WSPM,float64
-datetime,datetime64[ns]
+datetime,datetime64[us]
 hour,int64
-station,object
+station,str
 time_slot,object

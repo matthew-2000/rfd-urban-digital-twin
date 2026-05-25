@@ -65,11 +65,15 @@ def prepare_rfd_sample(
         return sampled_input.reset_index(drop=True)
 
     per_station = sample_size // sampled_input["station"].nunique()
-    sampled = (
-        sampled_input.groupby("station", group_keys=False)
-        .apply(lambda part: part.sample(n=min(len(part), per_station), random_state=random_state))
-        .sort_values(["datetime", "station"])
-    )
+    sampled_parts = []
+    for _, station_part in sampled_input.groupby("station", sort=True):
+        sampled_parts.append(
+            station_part.sample(
+                n=min(len(station_part), per_station),
+                random_state=random_state,
+            )
+        )
+    sampled = pd.concat(sampled_parts, ignore_index=False).sort_values(["datetime", "station"])
     if len(sampled) < sample_size:
         remaining = sample_size - len(sampled)
         leftovers = sampled_input.drop(sampled.index, errors="ignore")
