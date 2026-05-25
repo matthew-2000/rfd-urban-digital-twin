@@ -100,7 +100,7 @@ Figures:
 - [x] profiling exports
 - [x] RFD validation and discovery
 - [x] threshold and station experiments
-- [ ] notebook final run
+- [x] notebook final run
 
 If no discovered rule satisfies `support >= 0.01` and `confidence >= 0.85`, `results/rfd_discovered_top10.csv` is exported with headers only and discussed in notebook as negative result.
 
