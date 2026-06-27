@@ -37,7 +37,7 @@
 \maketitle
 
 \begin{abstract}
-Questo report presenta un'analisi riproducibile della qualit\`a dell'aria urbana formulata come caso di studio per un \textit{Urban Digital Twin} in senso concettuale. Il dataset impiegato \`e un sottoinsieme del \textit{Beijing Multi-Site Air Quality Data Set}, limitato alle stazioni \textit{Aotizhongxin} e \textit{Changping} nel periodo settembre--dicembre 2013. L'obiettivo \`e valutare se relazioni approssimate tra variabili ambientali possano essere descritte tramite \textit{Relaxed Functional Dependencies} (RFDs). Dopo preprocessing e profiling, sono state validate regole candidate e condotta una scoperta leggera su un campione bilanciato di 1500 righe. Il dataset finale contiene 5426 osservazioni e 11 variabili. La regola candidata pi\`u solida risulta \texttt{station, PM2.5 $\rightarrow$ PM10}, con supporto 0.073 e confidenza 0.466 in configurazione \textit{medium}. Nessuna regola scoperta automaticamente soddisfa simultaneamente i vincoli finali di supporto e confidenza. Il risultato suggerisce che le RFD sono utili soprattutto come strumento di profilazione della coerenza e analisi delle violazioni, non come base per inferenze causali.
+Questo report presenta un'analisi riproducibile della qualit\`a dell'aria urbana formulata come caso di studio per un \textit{Urban Digital Twin} in senso concettuale. Il dataset impiegato \`e un sottoinsieme del \textit{Beijing Multi-Site Air Quality Data Set}, limitato alle stazioni \textit{Aotizhongxin} e \textit{Changping} nel periodo settembre--dicembre 2013. L'obiettivo \`e valutare se relazioni approssimate tra variabili ambientali possano essere descritte tramite \textit{Relaxed Functional Dependencies} (RFDs), senza forzare artificialmente regole ad alta confidenza. Oltre a preprocessing e profiling, il lavoro introduce una baseline per permutazione del lato destro, il lift rispetto al caso casuale, bootstrap, validazione temporale settembre--novembre versus dicembre, continuous profiling mensile, varianti discretizzate e analisi delle violazioni. Il dataset finale contiene 5426 osservazioni e 11 variabili; gli esperimenti pairwise usano un campione bilanciato di 1500 righe. Le regole pi\`u informative sono quelle sul particolato, in particolare \texttt{station, PM2.5, NO2 $\rightarrow$ PM10}, con confidenza 0.520 e lift 3.54 rispetto alla baseline. Le confidenze restano moderate, ma alcune relazioni sono chiaramente superiori al caso casuale e quindi utili per consistency profiling e continuous profiling, non per inferenza causale.
 \end{abstract}
 
 \section{Introduzione}
@@ -57,7 +57,7 @@ Pi\`u precisamente, il progetto si propone di:
 \end{enumerate}
 
 \section{Dati e preprocessing}
-Il dataset di partenza \`e il \textit{Beijing Multi-Site Air Quality Data Set} della UCI Machine Learning Repository \cite{uci}. Per contenere il costo degli esperimenti pairwise sono state selezionate soltanto due stazioni, \texttt{Aotizhongxin} e \texttt{Changping}, e una finestra temporale compresa tra il 1 settembre 2013 e il 31 dicembre 2013. La finestra settembre--novembre produceva 3996 righe complete; l'inclusione di dicembre porta il dataset a 5426 righe, valore pi\`u adatto allo scopo del progetto.
+Il dataset di partenza \`e il \textit{Beijing Multi-Site Air Quality Data Set} della UCI Machine Learning Repository \cite{uci}. Nel workspace locale sono disponibili solo i file grezzi delle stazioni \texttt{Aotizhongxin} e \texttt{Changping}; per questo motivo l'analisi non viene estesa a tutte le stazioni del dataset originale. La pipeline resta compatibile con ulteriori file stazione, ma i risultati qui discussi riguardano solo queste due stazioni. La finestra temporale va dal 1 settembre 2013 al 31 dicembre 2013. La finestra settembre--novembre produceva 3996 righe complete; l'inclusione di dicembre porta il dataset a 5426 righe, valore pi\`u adatto allo scopo del progetto e utile per una validazione temporale separata.
 
 Le variabili finali sono:
 \texttt{datetime}, \texttt{station}, \texttt{hour}, \texttt{PM2.5}, \texttt{PM10}, \texttt{NO2}, \texttt{O3}, \texttt{TEMP}, \texttt{DEWP}, \texttt{WSPM}, \texttt{time\_slot}. La variabile \texttt{time\_slot} aggrega l'ora in quattro classi: \texttt{night}, \texttt{morning}, \texttt{afternoon}, \texttt{evening}. La gestione dei mancanti \`e stata intenzionalmente semplice: calcolo del riepilogo, eliminazione delle righe incomplete sulle colonne finali e nessuna imputazione.
@@ -106,9 +106,12 @@ Per una regola $X \rightarrow Y$ si definiscono:
 \text{support} = \frac{\text{antecedent\_pairs}}{\text{total\_pairs}}, \qquad
 \text{confidence} = \frac{\text{valid\_pairs}}{\text{antecedent\_pairs}}
 \]
-mentre il \textit{violation rate} \`e dato da $1-\text{confidence}$.
+mentre il \textit{violation rate} \`e dato da $1-\text{confidence}$. Per evitare di interpretare una confidenza grezza come evidenza sostanziale, si calcola anche una baseline: i valori del lato destro vengono permutati casualmente e la confidenza viene ricalcolata mantenendo invariata la struttura delle coppie antecedenti. Il lift \`e quindi:
+\[
+\text{lift} = \frac{\text{confidence}}{\text{baseline\_confidence}}.
+\]
 
-In questa formulazione, il supporto misura la frequenza con cui il lato sinistro trova effettivamente coppie comparabili nel dataset, mentre la confidenza misura la tenuta della regola dentro quel sottoinsieme di confronti. Una regola con supporto molto basso pu\`o risultare poco informativa anche se avesse buona confidenza; viceversa una regola con supporto accettabile ma bassa confidenza segnala che la relazione ipotizzata non \`e sufficientemente stabile.
+In questa formulazione, il supporto misura la frequenza con cui il lato sinistro trova effettivamente coppie comparabili nel dataset, mentre la confidenza misura la tenuta della regola dentro quel sottoinsieme di confronti. La baseline \`e necessaria perch\'e alcune variabili possono apparire simili frequentemente anche per effetto della distribuzione marginale; una regola \`e quindi pi\`u interessante quando mostra lift superiore a 1, non solo quando ha confidenza elevata. Una regola con supporto molto basso pu\`o risultare poco informativa anche se avesse buona confidenza; viceversa una regola con supporto accettabile ma bassa confidenza segnala che la relazione ipotizzata non \`e sufficientemente stabile.
 
 La similarit\`a \`e definita tramite:
 \begin{itemize}[leftmargin=1.2cm]
@@ -142,16 +145,20 @@ Attributo & strict & medium & relaxed \\
 
 Le regole candidate validate esplicitamente sono:
 \begin{enumerate}[leftmargin=1.2cm]
-    \item \texttt{station, hour, TEMP $\rightarrow$ NO2};
-    \item \texttt{station, TEMP, DEWP $\rightarrow$ PM2.5};
     \item \texttt{station, PM2.5 $\rightarrow$ PM10};
-    \item \texttt{station, TEMP, WSPM $\rightarrow$ O3};
-    \item \texttt{hour, NO2 $\rightarrow$ PM2.5}.
+    \item \texttt{station, time\_slot, PM2.5 $\rightarrow$ PM10};
+    \item \texttt{station, PM2.5, NO2 $\rightarrow$ PM10};
+    \item \texttt{station, hour, TEMP, WSPM $\rightarrow$ O3};
+    \item \texttt{station, time\_slot, TEMP, WSPM $\rightarrow$ O3};
+    \item \texttt{station, time\_slot, NO2 $\rightarrow$ O3};
+    \item \texttt{station, TEMP, DEWP, WSPM $\rightarrow$ PM2.5}.
 \end{enumerate}
 
 La scoperta automatica considera lati sinistri di dimensione 1--3, con attributi scelti tra \texttt{station}, \texttt{hour}, \texttt{time\_slot}, \texttt{TEMP}, \texttt{DEWP}, \texttt{WSPM}, \texttt{PM2.5}, \texttt{NO2}, e lati destri tra \texttt{PM2.5}, \texttt{PM10}, \texttt{NO2}, \texttt{O3}. Una regola viene mantenuta solo se soddisfa \textit{support} $\geq 0.01$ e \textit{confidence} $\geq 0.85$.
 
 Poich\'e il confronto esaustivo tra tuple cresce quadraticamente, gli esperimenti RFD non vengono condotti sul dataset completo ma su un campione deterministico bilanciato di 1500 righe, ottenuto estraendo 750 osservazioni per stazione. Il profiling, invece, resta calcolato sull'intero dataset pulito. Questa separazione tra fase descrittiva e fase pairwise consente di mantenere sia leggibilit\`a statistica sia sostenibilit\`a computazionale.
+
+La robustezza delle regole viene valutata con quattro estensioni. Primo, un bootstrap bilanciato di 30 ripetizioni stima media, deviazione standard e intervalli empirici al 95\% di supporto, confidenza e lift. Secondo, una validazione temporale usa settembre--novembre come train e dicembre come test. Terzo, il continuous profiling calcola le metriche su finestre mensili, evidenziando cambiamenti bruschi di confidenza o lift. Quarto, una variante discretizzata trasforma \texttt{PM2.5}, \texttt{PM10}, \texttt{NO2}, \texttt{O3}, \texttt{TEMP}, \texttt{DEWP} e \texttt{WSPM} in classi \textit{low}, \textit{medium}, \textit{high} basate sui quantili, per confrontare regole raw e binned.
 
 \section{Risultati}
 Il dataset finale risulta completo sulle variabili selezionate. Le statistiche descrittive mostrano valori medi pari a 73.69 per \texttt{PM2.5}, 94.42 per \texttt{PM10}, 55.02 per \texttt{NO2} e 29.69 per \texttt{O3}. Le correlazioni pi\`u forti sono quelle tra \texttt{PM2.5} e \texttt{PM10} (0.912), tra \texttt{PM10} e \texttt{NO2} (0.780), tra \texttt{PM2.5} e \texttt{NO2} (0.772), e tra \texttt{TEMP} e \texttt{DEWP} (0.825). \texttt{NO2} e \texttt{O3} mostrano invece una correlazione negativa moderata (-0.486).
@@ -188,30 +195,36 @@ Le distribuzioni di \texttt{PM2.5} e \texttt{NO2} mostrano una marcata dispersio
 \caption{Matrice di correlazione delle variabili numeriche principali.}
 \end{figure}
 
-I risultati della validazione delle regole candidate in configurazione \texttt{medium} sono sintetizzati nella Tabella~\ref{tab:candidate}.
+I risultati della validazione delle regole candidate in configurazione \texttt{medium} sono sintetizzati nella Tabella~\ref{tab:candidate}. Nessuna regola viene presentata come dipendenza forte: le confidenze restano tra 0.18 e 0.52. Tuttavia il confronto con la baseline cambia l'interpretazione. Le tre regole sul particolato hanno lift superiore a 3, quindi sono nettamente pi\`u informative di una permutazione casuale del lato destro.
 
 \begin{table}[H]
 \centering
-\caption{RFD candidate con soglie \texttt{medium}}
+\caption{RFD candidate raw con baseline per permutazione}
 \label{tab:candidate}
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X r r}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X r r r r}
 \toprule
-Regola & Support & Confidence \\
+Regola & Support & Conf. & Baseline & Lift \\
 \midrule
-\texttt{station, PM2.5 $\rightarrow$ PM10} & 0.073 & 0.466 \\
-\texttt{station, TEMP, WSPM $\rightarrow$ O3} & 0.035 & 0.385 \\
-\texttt{hour, NO2 $\rightarrow$ PM2.5} & 0.026 & 0.317 \\
-\texttt{station, hour, TEMP $\rightarrow$ NO2} & 0.009 & 0.254 \\
-\texttt{station, TEMP, DEWP $\rightarrow$ PM2.5} & 0.014 & 0.203 \\
+\texttt{station, PM2.5, NO2 $\rightarrow$ PM10} & 0.029 & 0.520 & 0.147 & 3.54 \\
+\texttt{station, time\_slot, PM2.5 $\rightarrow$ PM10} & 0.019 & 0.477 & 0.148 & 3.22 \\
+\texttt{station, PM2.5 $\rightarrow$ PM10} & 0.073 & 0.466 & 0.148 & 3.15 \\
+\texttt{station, time\_slot, NO2 $\rightarrow$ O3} & 0.027 & 0.473 & 0.272 & 1.74 \\
+\texttt{station, hour, TEMP, WSPM $\rightarrow$ O3} & 0.005 & 0.442 & 0.270 & 1.64 \\
+\texttt{station, time\_slot, TEMP, WSPM $\rightarrow$ O3} & 0.010 & 0.425 & 0.271 & 1.57 \\
+\texttt{station, TEMP, DEWP, WSPM $\rightarrow$ PM2.5} & 0.010 & 0.178 & 0.147 & 1.22 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-La regola pi\`u forte \`e \texttt{station, PM2.5 $\rightarrow$ PM10}. Il risultato \`e coerente con l'alta correlazione tra i due indicatori di particolato, ma la confidenza rimane modesta. In termini sostanziali, questo significa che osservazioni simili su \texttt{station} e \texttt{PM2.5} non conducono abbastanza spesso a valori simili di \texttt{PM10} da supportare una regola robusta.
+La regola pi\`u informativa \`e \texttt{station, PM2.5, NO2 $\rightarrow$ PM10}. La confidenza pari a 0.520 non giustifica una lettura deterministica, ma il lift 3.54 indica che la coerenza osservata non \`e spiegabile solo dalla distribuzione marginale di \texttt{PM10}. Anche le due varianti pi\`u semplici sul legame \texttt{PM2.5}--\texttt{PM10} hanno lift intorno a 3. Al contrario, la regola meteorologica verso \texttt{PM2.5} ha lift 1.22: \`e solo leggermente migliore del caso casuale e quindi poco difendibile come regolarit\`a.
 
-Le altre regole candidate risultano ancora pi\`u deboli. In particolare, \texttt{station, TEMP, DEWP $\rightarrow$ PM2.5} ha una confidenza pari a 0.203, suggerendo che condizioni termo-igrometriche simili non bastano a spiegare un comportamento sufficientemente coerente del particolato fine. Allo stesso modo, \texttt{station, hour, TEMP $\rightarrow$ NO2} presenta supporto inferiore a 0.01 e quindi una copertura limitata del dominio osservato.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{rfd_lift_vs_baseline.png}
+\caption{Confidenza osservata rispetto alla baseline ottenuta permutando il lato destro.}
+\end{figure}
 
-La variazione delle soglie conferma questo quadro. La regola \texttt{station, PM2.5 $\rightarrow$ PM10} passa da una confidenza di 0.374 in configurazione \texttt{strict} a 0.610 in configurazione \texttt{relaxed}; tutte le altre restano sotto tali valori. Nessuna raggiunge comunque la soglia finale di 0.85.
+La variazione delle soglie conferma che soglie pi\`u rilassate aumentano la confidenza, ma questo non deve essere usato per forzare regole artificialmente alte. Ad esempio \texttt{station, PM2.5, NO2 $\rightarrow$ PM10} passa da 0.422 in configurazione \texttt{strict} a 0.665 in configurazione \texttt{relaxed}; \texttt{station, PM2.5 $\rightarrow$ PM10} passa da 0.374 a 0.610. Nessuna regola raggiunge comunque una confidenza tale da poter essere trattata come vincolo quasi-deterministico.
 
 \begin{figure}[H]
 \centering
@@ -219,62 +232,60 @@ La variazione delle soglie conferma questo quadro. La regola \texttt{station, PM
 \caption{Confidenza delle regole candidate nelle tre configurazioni di soglia.}
 \end{figure}
 
-Per completezza, la Tabella~\ref{tab:thresholds-results} riassume l'andamento della confidenza nelle tre configurazioni.
+La variante discretizzata produce confidenze pi\`u alte, come atteso, perch\'e le classi \textit{low}, \textit{medium} e \textit{high} riducono la granularit\`a del confronto. La migliore regola binned \texttt{station, PM2.5\_bin, NO2\_bin $\rightarrow$ PM10\_bin} raggiunge confidenza 0.734 e lift 2.21. Questo risultato \`e utile per profiling qualitativo, ma non va confrontato direttamente con la versione raw come se misurasse la stessa severit\`a: la discretizzazione rende la similarit\`a meno esigente.
+
+Il bootstrap a 30 ripetizioni conferma la stabilit\`a relativa delle regole sul particolato. Per \texttt{station, PM2.5, NO2 $\rightarrow$ PM10}, la confidenza media \`e 0.520 con intervallo empirico 95\% tra 0.494 e 0.550, mentre il lift medio \`e 3.41 con intervallo tra 3.21 e 3.63. Per \texttt{station, PM2.5 $\rightarrow$ PM10}, il lift medio \`e 3.09. Le regole su \texttt{O3} mostrano lift medio tra 1.61 e 1.77, quindi sono pi\`u deboli ma ancora superiori alla baseline.
 
 \begin{table}[H]
 \centering
-\caption{Confronto delle confidenze al variare delle soglie}
-\label{tab:thresholds-results}
-\begin{tabular}{lccc}
+\caption{Sintesi bootstrap delle principali RFD raw}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X r r r}
 \toprule
-Regola & strict & medium & relaxed \\
+Regola & Conf. media & Lift medio & CI 95\% lift \\
 \midrule
-\texttt{station, PM2.5 $\rightarrow$ PM10} & 0.374 & 0.466 & 0.610 \\
-\texttt{station, TEMP, WSPM $\rightarrow$ O3} & 0.283 & 0.385 & 0.452 \\
-\texttt{hour, NO2 $\rightarrow$ PM2.5} & 0.201 & 0.317 & 0.383 \\
-\texttt{station, hour, TEMP $\rightarrow$ NO2} & 0.159 & 0.254 & 0.345 \\
-\texttt{station, TEMP, DEWP $\rightarrow$ PM2.5} & 0.142 & 0.203 & 0.258 \\
+\texttt{station, PM2.5, NO2 $\rightarrow$ PM10} & 0.520 & 3.41 & [3.21, 3.63] \\
+\texttt{station, time\_slot, PM2.5 $\rightarrow$ PM10} & 0.485 & 3.19 & [3.00, 3.47] \\
+\texttt{station, PM2.5 $\rightarrow$ PM10} & 0.472 & 3.09 & [2.93, 3.30] \\
+\texttt{station, time\_slot, NO2 $\rightarrow$ O3} & 0.496 & 1.77 & [1.71, 1.85] \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
-La scoperta leggera non restituisce alcuna regola valida secondo i criteri finali. Il file \texttt{results/rfd\_discovered\_top10.csv} viene infatti esportato con la sola intestazione. Questo esito negativo \`e comunque rilevante: segnala che, nello spazio di ricerca definito, non emergono relazioni sufficientemente stabili da essere considerate RFD forti.
+La validazione temporale usa settembre--novembre come train e dicembre come test. Le regole sul particolato rimangono informative anche nel test: \texttt{station, PM2.5, NO2 $\rightarrow$ PM10} passa da confidenza 0.490 e lift 3.38 nel train a confidenza 0.578 e lift 3.49 nel test. Anche \texttt{station, PM2.5 $\rightarrow$ PM10} resta stabile in termini di lift, da 3.04 a 3.10. Le regole su \texttt{O3} cambiano di pi\`u: \texttt{station, time\_slot, NO2 $\rightarrow$ O3} passa da confidenza 0.447 nel train a 0.732 nel test, segnale di forte instabilit\`a temporale pi\`u che di regola universalmente valida.
 
-Il confronto per stazione mostra differenze moderate ma non risolutive. Ad esempio, \texttt{PM2.5 $\rightarrow$ PM10} ha confidenza 0.437 ad \texttt{Aotizhongxin} e 0.495 a \texttt{Changping}; \texttt{TEMP, WSPM $\rightarrow$ O3} \`e pi\`u forte ad \texttt{Aotizhongxin} (0.417) che a \texttt{Changping} (0.350). Anche l'analisi locale, dunque, non produce regole ad alta affidabilit\`a.
+Il continuous profiling mensile rafforza questa lettura. Per il particolato il lift varia sensibilmente tra ottobre e novembre, ma resta sempre superiore a 2.6. Per \texttt{station, time\_slot, NO2 $\rightarrow$ O3}, invece, la confidenza cresce da 0.319 a settembre a 0.732 a dicembre. Questi salti sono evidenziati nel file \texttt{results/rfd\_window\_evolution.csv} e nella Figura~\ref{fig:confidence-over-time}; vanno letti come cambiamenti di regime o eterogeneit\`a stagionale, non come prova causale.
 
-\begin{table}[H]
+\begin{figure}[H]
 \centering
-\caption{Confronto per stazione in configurazione \texttt{medium}}
-\begin{tabular}{llcc}
-\toprule
-Regola valutata & Stazione & Support & Confidence \\
-\midrule
-\texttt{PM2.5 $\rightarrow$ PM10} & Aotizhongxin & 0.143 & 0.437 \\
-\texttt{PM2.5 $\rightarrow$ PM10} & Changping & 0.151 & 0.495 \\
-\texttt{TEMP, DEWP $\rightarrow$ PM2.5} & Aotizhongxin & 0.029 & 0.202 \\
-\texttt{TEMP, DEWP $\rightarrow$ PM2.5} & Changping & 0.026 & 0.204 \\
-\texttt{TEMP, WSPM $\rightarrow$ O3} & Aotizhongxin & 0.073 & 0.417 \\
-\texttt{TEMP, WSPM $\rightarrow$ O3} & Changping & 0.066 & 0.350 \\
-\texttt{hour, NO2 $\rightarrow$ PM2.5} & Aotizhongxin & 0.025 & 0.349 \\
-\texttt{hour, NO2 $\rightarrow$ PM2.5} & Changping & 0.030 & 0.293 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\includegraphics[width=0.82\textwidth]{rfd_confidence_over_time.png}
+\caption{Evoluzione mensile della confidenza per le principali RFD.}
+\label{fig:confidence-over-time}
+\end{figure}
 
-Un ulteriore elemento utile \`e l'analisi delle violazioni esportate. Per la regola \texttt{station, PM2.5 $\rightarrow$ PM10}, ad esempio, compaiono coppie di osservazioni nella stessa stazione con valori di \texttt{PM2.5} vicini ma differenze di \texttt{PM10} anche superiori a 50 unit\`a. Analogamente, per \texttt{station, TEMP, WSPM $\rightarrow$ O3} si osservano casi con temperatura e velocit\`a del vento comparabili ma con \texttt{O3} molto diverso. Questi esempi non vanno letti automaticamente come errori: possono riflettere eventi locali, variabili omesse o semplice irregolarit\`a del fenomeno.
+La scoperta leggera non restituisce alcuna regola valida secondo i criteri finali di \textit{support} $\geq 0.01$ e \textit{confidence} $\geq 0.85$. Il file \texttt{results/rfd\_discovered\_top10.csv} viene quindi esportato con la sola intestazione. Questo esito negativo \`e coerente con la scelta metodologica: non si forzano soglie o discretizzazioni per produrre RFD forti, ma si descrivono regolarit\`a approssimate e il loro margine rispetto alla baseline.
+
+Un ulteriore elemento utile \`e l'analisi delle violazioni esportate. Per le due migliori RFD raw vengono salvate le coppie pi\`u violanti in \texttt{results/rfd\_top\_violating\_pairs.csv}; la concentrazione viene poi aggregata per stazione, mese e fascia oraria in \texttt{results/rfd\_violations\_summary.csv}. Le violazioni pi\`u estreme della regola \texttt{station, PM2.5, NO2 $\rightarrow$ PM10} si concentrano soprattutto a \texttt{Changping} nel mese di settembre, in particolare nelle fasce \texttt{morning} e \texttt{night}, con differenze medie di \texttt{PM10} superiori a 214 nelle coppie selezionate. Questo non implica necessariamente errore di misura: pu\`o riflettere eterogeneit\`a locale, eventi emissivi non osservati, condizioni meteorologiche non incluse o differenze nella composizione del particolato.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{rfd_violations_by_month_station.png}
+\caption{Concentrazione delle coppie pi\`u violanti per mese e stazione.}
+\end{figure}
 
 \section{Discussione e conclusioni}
 Il risultato complessivo \`e coerente con il dominio applicativo. La qualit\`a dell'aria urbana dipende da un insieme ampio di fattori atmosferici e antropici, molti dei quali non sono rappresentati nel dataset ridotto. In questo contesto, \`e plausibile che regole interpretabili basate su pochi attributi abbiano una capacit\`a descrittiva limitata.
 
-Il contributo principale del lavoro non sta quindi nell'identificazione di dipendenze forti, ma nella costruzione di un workflow riproducibile di \textit{consistency profiling}. Le RFD si rivelano utili per:
+Il contributo principale del lavoro non sta quindi nell'identificazione di dipendenze forti, ma nella costruzione di un workflow riproducibile di \textit{consistency profiling} e \textit{continuous profiling}. Le RFD si rivelano utili per:
 \begin{itemize}[leftmargin=1.2cm]
     \item verificare la coerenza approssimata tra variabili ambientali;
-    \item confrontare la stabilit\`a delle regole al variare delle soglie;
-    \item evidenziare violazioni potenzialmente interessanti;
+    \item confrontare ogni regola con una baseline casuale tramite lift;
+    \item stimare l'incertezza con bootstrap;
+    \item confrontare la stabilit\`a delle regole al variare delle soglie e nel tempo;
+    \item evidenziare violazioni potenzialmente interessanti per stazione, mese e fascia oraria;
     \item mantenere un elevato livello di interpretabilit\`a.
 \end{itemize}
 
-Restano tuttavia chiari i limiti del lavoro: l'UDT \`e solo concettuale, la validazione pairwise \`e quadraticamente costosa, le soglie sono scelte manualmente e le RFD non devono essere lette come leggi causali. In sintesi, il progetto mostra che l'approccio \`e adatto a un'analisi esplorativa rigorosa e leggibile, ma non supporta conclusioni forti sulla dinamica causale della qualit\`a dell'aria.
+Restano tuttavia chiari i limiti del lavoro: l'UDT \`e solo concettuale, la validazione pairwise \`e quadraticamente costosa, le soglie sono scelte manualmente e le RFD non devono essere lette come leggi causali. Anche quando una regola ha lift elevato, essa dice soltanto che coppie simili sugli antecedenti tendono a essere pi\`u coerenti sul conseguente rispetto a una baseline randomizzata. Non stabilisce che gli antecedenti causino il conseguente. In sintesi, il progetto mostra che l'approccio \`e adatto a un'analisi esplorativa rigorosa e leggibile della coerenza dei dati, ma non supporta conclusioni forti sulla dinamica causale della qualit\`a dell'aria.
 
 Un possibile sviluppo futuro sarebbe estendere l'analisi a un numero maggiore di stazioni o introdurre strategie di campionamento e pruning pi\`u sofisticate per la scoperta delle RFD. Sarebbe inoltre utile confrontare soglie fissate manualmente con soglie derivate dai quantili empirici delle differenze tra osservazioni. Anche in questi casi, tuttavia, l'obiettivo resterebbe quello di descrivere regolarit\`a approssimate, non di stabilire nessi causali.
 

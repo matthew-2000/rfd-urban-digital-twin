@@ -121,6 +121,30 @@ def attribute_similarity_mask(
     return diff <= float(threshold)
 
 
+def values_similarity_mask(
+    values: np.ndarray,
+    attr: str,
+    thresholds: dict[str, object],
+    pair_cache: PairIndexCache,
+) -> np.ndarray:
+    """Return pairwise similarity mask for an explicit value array."""
+
+    left = values[pair_cache.row_i]
+    right = values[pair_cache.row_j]
+    threshold = thresholds[attr]
+
+    if threshold == "equal":
+        return left == right
+
+    if attr == "hour":
+        diff = np.abs(left.astype(int) - right.astype(int))
+        circular_diff = np.minimum(diff, 24 - diff)
+        return circular_diff <= int(threshold)
+
+    diff = np.abs(left.astype(float) - right.astype(float))
+    return diff <= float(threshold)
+
+
 def build_similarity_cache(
     df: pd.DataFrame,
     thresholds: dict[str, object],
@@ -174,6 +198,36 @@ def _build_violation_examples(
     return examples
 
 
+def permutation_baseline_confidence(
+    df: pd.DataFrame,
+    rhs: str,
+    thresholds: dict[str, object],
+    antecedent_mask: np.ndarray,
+    pair_cache: PairIndexCache,
+    permutations: int = 20,
+    random_state: int = 42,
+) -> float | None:
+    """Estimate RHS baseline confidence by permuting RHS values."""
+
+    antecedent_pairs = int(antecedent_mask.sum())
+    if antecedent_pairs == 0 or permutations <= 0:
+        return None
+
+    rng = np.random.default_rng(random_state)
+    rhs_values = df[rhs].to_numpy()
+    confidences: list[float] = []
+    for _ in range(permutations):
+        permuted_values = rng.permutation(rhs_values)
+        permuted_rhs_mask = values_similarity_mask(
+            values=permuted_values,
+            attr=rhs,
+            thresholds=thresholds,
+            pair_cache=pair_cache,
+        )
+        confidences.append(float((antecedent_mask & permuted_rhs_mask).sum() / antecedent_pairs))
+    return float(np.mean(confidences))
+
+
 def validate_rfd(
     df: pd.DataFrame,
     lhs: Iterable[str],
@@ -182,8 +236,10 @@ def validate_rfd(
     max_violations: int = 10,
     pair_cache: PairIndexCache | None = None,
     similarity_cache: dict[str, np.ndarray] | None = None,
+    baseline_permutations: int = 0,
+    random_state: int = 42,
 ) -> dict[str, object]:
-    """Validate one RFD and return support, confidence, and violation examples."""
+    """Validate one RFD and return observed metrics plus optional permutation baseline."""
 
     lhs = list(lhs)
     if pair_cache is None:
@@ -212,6 +268,8 @@ def validate_rfd(
             "support": support,
             "confidence": None,
             "violation_rate": None,
+            "baseline_confidence": None,
+            "lift": None,
             "violation_examples": [],
         }
 
@@ -220,6 +278,20 @@ def validate_rfd(
     violations = antecedent_pairs - valid_pairs
     confidence = valid_pairs / antecedent_pairs
     violation_rate = 1.0 - confidence
+    baseline_confidence = permutation_baseline_confidence(
+        df=df,
+        rhs=rhs,
+        thresholds=thresholds,
+        antecedent_mask=antecedent_mask,
+        pair_cache=pair_cache,
+        permutations=baseline_permutations,
+        random_state=random_state,
+    )
+    lift = (
+        confidence / baseline_confidence
+        if baseline_confidence is not None and baseline_confidence > 0
+        else None
+    )
     violation_positions = np.flatnonzero(antecedent_mask & ~rhs_mask)
     violation_examples = _build_violation_examples(
         df=df,
@@ -240,6 +312,8 @@ def validate_rfd(
         "support": support,
         "confidence": confidence,
         "violation_rate": violation_rate,
+        "baseline_confidence": baseline_confidence,
+        "lift": lift,
         "violation_examples": violation_examples,
     }
 

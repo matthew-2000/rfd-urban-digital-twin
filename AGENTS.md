@@ -81,7 +81,17 @@ Derived variable:
   - `night`: 0-5
   - `morning`: 6-11
   - `afternoon`: 12-17
-  - `evening`: 18-23
+    - `evening`: 18-23
+
+Available local raw files as of this revision:
+
+- `Aotizhongxin`
+- `Changping`
+
+Only these two stations are used because no other station CSV is present in
+`data/raw/`. The code remains compatible with additional station files, but the
+report must not claim an all-station experiment unless those files are added and
+the pipeline is rerun.
 
 Missing-value policy:
 
@@ -134,9 +144,16 @@ Results:
 - `results/profile_time_slot_distribution.csv`
 - `results/profile_correlation_matrix.csv`
 - `results/rfd_candidate_results.csv`
+- `results/rfd_candidate_metrics.csv`
 - `results/rfd_discovered_top10.csv`
 - `results/rfd_threshold_comparison.csv`
 - `results/rfd_station_comparison.csv`
+- `results/rfd_bootstrap_summary.csv`
+- `results/rfd_bootstrap_iterations.csv`
+- `results/rfd_train_test_validation.csv`
+- `results/rfd_window_evolution.csv`
+- `results/rfd_violations_summary.csv`
+- `results/rfd_top_violating_pairs.csv`
 - `results/violations_examples.csv`
 
 Figures:
@@ -148,6 +165,9 @@ Figures:
 - `figures/correlation_matrix.png`
 - `figures/rfd_confidence_by_threshold.png`
 - `figures/rfd_confidence_by_station.png`
+- `figures/rfd_lift_vs_baseline.png`
+- `figures/rfd_confidence_over_time.png`
+- `figures/rfd_violations_by_month_station.png`
 
 ## Profiling requirements
 
@@ -183,11 +203,34 @@ Threshold configs:
 
 Default candidate RFDs:
 
-- `station, hour, TEMP -> NO2`
-- `station, TEMP, DEWP -> PM2.5`
 - `station, PM2.5 -> PM10`
-- `station, TEMP, WSPM -> O3`
-- `hour, NO2 -> PM2.5`
+- `station, time_slot, PM2.5 -> PM10`
+- `station, PM2.5, NO2 -> PM10`
+- `station, hour, TEMP, WSPM -> O3`
+- `station, time_slot, TEMP, WSPM -> O3`
+- `station, time_slot, NO2 -> O3`
+- `station, TEMP, DEWP, WSPM -> PM2.5`
+
+General validation metrics:
+
+- `support`
+- `confidence`
+- `violation_rate`
+- `baseline_confidence` from RHS permutation
+- `lift = confidence / baseline_confidence`
+- `antecedent_pairs`
+- `valid_pairs`
+
+Robustness experiments:
+
+- bootstrap validation uses at least 30 balanced resamples;
+- temporal validation trains/evaluates candidate rules on September-November
+  versus December;
+- continuous profiling computes monthly rule metrics and flags abrupt changes;
+- binned validation creates low/medium/high quantile classes for pollutants and
+  meteorological variables and compares raw versus binned rules;
+- violation analysis exports strongest violating pairs for the top two raw RFDs
+  and aggregates them by station, month, and time slot.
 
 Discovery search space:
 
