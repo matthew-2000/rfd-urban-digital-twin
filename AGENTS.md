@@ -40,13 +40,17 @@ Selected stations:
 
 Selected period:
 
-- `2013-09-01 00:00:00` to `2013-12-31 23:00:00`
+- `2013-03-01 00:00:00` to `2017-02-28 23:00:00`
 
 Reason:
 
-- requested Sep-Nov window produced only `3996` cleaned rows after dropna;
-- project target was roughly `5000-6000` rows;
-- adding nearby month December produced `5426` cleaned rows, within target.
+- this is the complete common temporal coverage of the two locally available
+  station files;
+- the definitive experiment uses all available observations for preprocessing
+  and profiling;
+- the resulting cleaned dataset contains `66619` rows;
+- quadratic RFD experiments remain tractable through the unchanged deterministic
+  balanced sample of `1500` rows.
 
 Processed dataset output:
 
@@ -88,10 +92,11 @@ Available local raw files as of this revision:
 - `Aotizhongxin`
 - `Changping`
 
-Only these two stations are used because no other station CSV is present in
-`data/raw/`. The code remains compatible with additional station files, but the
-report must not claim an all-station experiment unless those files are added and
-the pipeline is rerun.
+The two-station design provides a balanced comparison between sites while
+containing the quadratic cost of pairwise validation. The locally available raw
+files support this methodological selection. The code remains compatible with
+additional station files, but the report must not claim an all-station
+experiment unless those files are added and the pipeline is rerun.
 
 Missing-value policy:
 
@@ -216,7 +221,8 @@ General validation metrics:
 - `support`
 - `confidence`
 - `violation_rate`
-- `baseline_confidence` from RHS permutation
+- `baseline_confidence` as the mean over `30` seeded RHS permutations
+- `baseline_confidence_std` across the same permutations
 - `lift = confidence / baseline_confidence`
 - `antecedent_pairs`
 - `valid_pairs`
@@ -224,9 +230,11 @@ General validation metrics:
 Robustness experiments:
 
 - bootstrap validation uses at least 30 balanced resamples;
-- temporal validation trains/evaluates candidate rules on September-November
-  versus December;
-- continuous profiling computes monthly rule metrics and flags abrupt changes;
+- temporal validation preserves the original 75/25 chronological design: it
+  trains on `2013-03-01` through `2016-02-29` and evaluates on `2016-03-01`
+  through `2017-02-28`;
+- continuous profiling computes monthly rule metrics, including
+  `antecedent_pairs`, and flags abrupt changes;
 - binned validation creates low/medium/high quantile classes for pollutants and
   meteorological variables and compares raw versus binned rules;
 - violation analysis exports strongest violating pairs for the top two raw RFDs

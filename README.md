@@ -9,16 +9,19 @@ Source: [Beijing Multi-Site Air Quality Data Set](https://archive.ics.uci.edu/da
 Project subset:
 
 - stations: `Aotizhongxin`, `Changping`
-- period: `2013-09-01` to `2013-12-31`
+- period: `2013-03-01` to `2017-02-28`
 - final variables: `datetime`, `station`, `hour`, `PM2.5`, `PM10`, `NO2`, `O3`, `TEMP`, `DEWP`, `WSPM`, `time_slot`
 
-Why two stations and December included:
+Dataset scope:
 
-- only `Aotizhongxin` and `Changping` raw CSV files are available locally;
-- the pipeline can load more stations if their raw files are added, but this run does not claim an all-station result;
-- requested Sep-Nov subset cleaned to `3996` rows after dropna;
-- adding December yields `5426` cleaned rows;
-- this keeps pairwise RFD validation feasible while staying near target size.
+- the two-station design enables a balanced comparison between sites while
+  reducing the quadratic pairwise cost;
+- the pipeline remains extensible to additional stations, but this run is
+  intentionally scoped to the selected pair;
+- the definitive experiment uses the complete common temporal coverage of both files;
+- the final cleaned dataset contains `66619` rows;
+- full cleaned data are used for preprocessing and profiling, while pairwise RFD
+  validation remains tractable through the deterministic balanced sample.
 
 ## Structure
 
@@ -44,10 +47,10 @@ Raw Beijing CSV files must be in `data/raw/`.
 
 ## Run
 
-Run notebook:
+Run the complete pipeline and overwrite the executed notebook and all generated outputs:
 
 ```bash
-jupyter notebook notebooks/01_rfd_udt_analysis.ipynb
+.venv/bin/jupyter nbconvert --to notebook --execute notebooks/01_rfd_udt_analysis.ipynb --output 01_rfd_udt_analysis.ipynb --output-dir notebooks --ExecutePreprocessor.timeout=0
 ```
 
 Main generated dataset:
@@ -64,7 +67,8 @@ For rule `LHS -> RHS`:
 - `support = antecedent_pairs / total_pairs`
 - `confidence = valid_pairs / antecedent_pairs`
 - `violation_rate = 1 - confidence`
-- `baseline_confidence` is estimated by permuting RHS values and recomputing confidence
+- `baseline_confidence` is the mean confidence over 30 seeded RHS permutations
+- `baseline_confidence_std` measures variation across those permutations
 - `lift = confidence / baseline_confidence`
 
 RFD confidence measures how often similar tuples on LHS stay similar on RHS. Lift is used to avoid over-interpreting raw confidence: a rule is more informative when it performs clearly above the randomized RHS baseline. These metrics are not prediction accuracy and not causal evidence.
@@ -72,7 +76,8 @@ RFD confidence measures how often similar tuples on LHS stay similar on RHS. Lif
 Additional robustness checks:
 
 - 30 balanced bootstrap resamples with mean, standard deviation, and 95% intervals for support, confidence, and lift;
-- train/test temporal validation: September-November as train, December as test;
+- train/test temporal validation: `2013-03-01`–`2016-02-29` as train and
+  `2016-03-01`–`2017-02-28` as test;
 - monthly continuous profiling with abrupt-change flags;
 - raw versus quantile-binned low/medium/high RFD variants;
 - strongest violation-pair export and aggregation by station, month, and time slot.

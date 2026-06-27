@@ -60,9 +60,11 @@ DISCOVERY_LHS_ATTRIBUTES = ["station", "hour", "time_slot", "TEMP", "DEWP", "WSP
 DISCOVERY_RHS_ATTRIBUTES = ["PM2.5", "PM10", "NO2", "O3"]
 DEFAULT_RFD_SAMPLE_SIZE = 1500
 DEFAULT_RANDOM_STATE = 42
-DEFAULT_BASELINE_PERMUTATIONS = 20
-BOOTSTRAP_BASELINE_PERMUTATIONS = 5
+DEFAULT_BASELINE_PERMUTATIONS = 30
+BOOTSTRAP_BASELINE_PERMUTATIONS = 30
 BOOTSTRAP_ITERATIONS = 30
+DEFAULT_TRAIN_END = "2016-02-29 23:00:00"
+DEFAULT_TEST_START = "2016-03-01 00:00:00"
 BINNED_COLUMNS = ["PM2.5", "PM10", "NO2", "O3", "TEMP", "DEWP", "WSPM"]
 
 BINNED_CANDIDATE_RULES = [
@@ -126,6 +128,7 @@ def _result_row(result: dict[str, object], threshold_set: str | None = None, sta
         "confidence": result["confidence"],
         "violation_rate": result["violation_rate"],
         "baseline_confidence": result.get("baseline_confidence"),
+        "baseline_confidence_std": result.get("baseline_confidence_std"),
         "lift": result.get("lift"),
     }
     if threshold_set is not None:
@@ -475,11 +478,11 @@ def run_bootstrap_validation(
 def run_train_test_validation(
     df: pd.DataFrame,
     output_path: Path,
-    train_end: str = "2013-11-30 23:00:00",
-    test_start: str = "2013-12-01 00:00:00",
+    train_end: str = DEFAULT_TRAIN_END,
+    test_start: str = DEFAULT_TEST_START,
     thresholds_name: str = "medium",
 ) -> pd.DataFrame:
-    """Validate candidate rules on Sep-Nov train and December test windows."""
+    """Validate candidate rules on chronological 75% train and 25% test windows."""
 
     thresholds = THRESHOLD_CONFIGS[thresholds_name]
     train_df = df[df["datetime"] <= pd.Timestamp(train_end)].reset_index(drop=True)
@@ -502,7 +505,17 @@ def run_train_test_validation(
         random_state=DEFAULT_RANDOM_STATE + 2000,
     )
 
-    keep = ["rule_label", "lhs", "rhs", "support", "confidence", "violation_rate", "baseline_confidence", "lift"]
+    keep = [
+        "rule_label",
+        "lhs",
+        "rhs",
+        "support",
+        "confidence",
+        "violation_rate",
+        "baseline_confidence",
+        "baseline_confidence_std",
+        "lift",
+    ]
     merged = train_metrics.loc[:, keep].merge(
         test_metrics.loc[:, keep],
         on=["rule_label", "lhs", "rhs"],

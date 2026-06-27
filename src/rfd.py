@@ -204,14 +204,37 @@ def permutation_baseline_confidence(
     thresholds: dict[str, object],
     antecedent_mask: np.ndarray,
     pair_cache: PairIndexCache,
-    permutations: int = 20,
+    permutations: int = 30,
     random_state: int = 42,
 ) -> float | None:
     """Estimate RHS baseline confidence by permuting RHS values."""
 
+    mean, _ = permutation_baseline_statistics(
+        df=df,
+        rhs=rhs,
+        thresholds=thresholds,
+        antecedent_mask=antecedent_mask,
+        pair_cache=pair_cache,
+        permutations=permutations,
+        random_state=random_state,
+    )
+    return mean
+
+
+def permutation_baseline_statistics(
+    df: pd.DataFrame,
+    rhs: str,
+    thresholds: dict[str, object],
+    antecedent_mask: np.ndarray,
+    pair_cache: PairIndexCache,
+    permutations: int = 30,
+    random_state: int = 42,
+) -> tuple[float | None, float | None]:
+    """Estimate mean and standard deviation of the permuted-RHS confidence."""
+
     antecedent_pairs = int(antecedent_mask.sum())
     if antecedent_pairs == 0 or permutations <= 0:
-        return None
+        return None, None
 
     rng = np.random.default_rng(random_state)
     rhs_values = df[rhs].to_numpy()
@@ -225,7 +248,7 @@ def permutation_baseline_confidence(
             pair_cache=pair_cache,
         )
         confidences.append(float((antecedent_mask & permuted_rhs_mask).sum() / antecedent_pairs))
-    return float(np.mean(confidences))
+    return float(np.mean(confidences)), float(np.std(confidences, ddof=0))
 
 
 def validate_rfd(
@@ -269,6 +292,7 @@ def validate_rfd(
             "confidence": None,
             "violation_rate": None,
             "baseline_confidence": None,
+            "baseline_confidence_std": None,
             "lift": None,
             "violation_examples": [],
         }
@@ -278,7 +302,7 @@ def validate_rfd(
     violations = antecedent_pairs - valid_pairs
     confidence = valid_pairs / antecedent_pairs
     violation_rate = 1.0 - confidence
-    baseline_confidence = permutation_baseline_confidence(
+    baseline_confidence, baseline_confidence_std = permutation_baseline_statistics(
         df=df,
         rhs=rhs,
         thresholds=thresholds,
@@ -313,6 +337,7 @@ def validate_rfd(
         "confidence": confidence,
         "violation_rate": violation_rate,
         "baseline_confidence": baseline_confidence,
+        "baseline_confidence_std": baseline_confidence_std,
         "lift": lift,
         "violation_examples": violation_examples,
     }

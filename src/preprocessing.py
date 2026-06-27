@@ -9,8 +9,8 @@ import pandas as pd
 
 
 DEFAULT_STATIONS = ("Aotizhongxin", "Changping")
-DEFAULT_START = "2013-09-01 00:00:00"
-DEFAULT_END = "2013-12-31 23:00:00"
+DEFAULT_START = "2013-03-01 00:00:00"
+DEFAULT_END = "2017-02-28 23:00:00"
 DEFAULT_COLUMNS = [
     "datetime",
     "station",
