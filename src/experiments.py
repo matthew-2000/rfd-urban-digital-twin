@@ -8,11 +8,11 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
+from src.algorithms.dime import discover_dime
 from src.rfd import (
     THRESHOLD_CONFIGS,
     build_pair_index_cache,
     build_similarity_cache,
-    discover_rfds,
     rule_to_label,
     validate_rfd,
 )
@@ -66,6 +66,9 @@ BOOTSTRAP_ITERATIONS = 30
 DEFAULT_TRAIN_END = "2016-02-29 23:00:00"
 DEFAULT_TEST_START = "2016-03-01 00:00:00"
 BINNED_COLUMNS = ["PM2.5", "PM10", "NO2", "O3", "TEMP", "DEWP", "WSPM"]
+DIME_ATTRIBUTES = ["station", "time_slot", "PM2.5", "PM10", "NO2", "O3", "TEMP", "WSPM"]
+DIME_EXTENT_THRESHOLD = 0.10
+DIME_G3_MODE = "greedy"
 
 BINNED_CANDIDATE_RULES = [
     {"lhs": ["station", "PM2.5_bin"], "rhs": "PM10_bin"},
@@ -75,6 +78,121 @@ BINNED_CANDIDATE_RULES = [
     {"lhs": ["station", "time_slot", "NO2_bin"], "rhs": "O3_bin"},
     {"lhs": ["station", "TEMP_bin", "DEWP_bin", "WSPM_bin"], "rhs": "PM2.5_bin"},
 ]
+
+
+def prepare_dime_projection(df: pd.DataFrame) -> pd.DataFrame:
+    """Build the domain-driven weekly station/time-slot DiMε relation."""
+
+    projected = df.copy()
+    projected["week_start"] = projected["datetime"].dt.to_period("W-MON").dt.start_time
+    numeric = ["PM2.5", "PM10", "NO2", "O3", "TEMP", "WSPM"]
+    relation = (
+        projected.groupby(["week_start", "station", "time_slot"], observed=True, as_index=False)
+        .agg(
+            **{attribute: (attribute, "median") for attribute in numeric},
+            source_rows=("datetime", "size"),
+        )
+        .sort_values(["week_start", "station", "time_slot"])
+        .reset_index(drop=True)
+    )
+    relation["datetime"] = relation["week_start"]
+    relation["source_index"] = relation.index
+    return relation[
+        ["datetime", "week_start", "station", "time_slot", *numeric, "source_rows", "source_index"]
+    ]
+
+
+def rules_from_discovery_frame(rules_df: pd.DataFrame) -> list[dict[str, object]]:
+    """Convert exported discovery rows to validation-rule dictionaries."""
+
+    rules: list[dict[str, object]] = []
+    for row in rules_df.itertuples(index=False):
+        lhs = [part.strip() for part in str(row.lhs).split(",") if part.strip()]
+        rules.append({"lhs": lhs, "rhs": row.rhs})
+    return rules
+
+
+def run_dime_discovery(
+    df: pd.DataFrame,
+    results_dir: Path,
+    thresholds_name: str = "medium",
+    extent_threshold: float = DIME_EXTENT_THRESHOLD,
+    g3_mode: str = DIME_G3_MODE,
+    baseline_permutations: int = DEFAULT_BASELINE_PERMUTATIONS,
+    top_k: int = 20,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Run full DiMε, validate every output, and export ranked results."""
+
+    results_dir = Path(results_dir)
+    results_dir.mkdir(parents=True, exist_ok=True)
+    thresholds = {attribute: THRESHOLD_CONFIGS[thresholds_name][attribute] for attribute in DIME_ATTRIBUTES}
+    discovered_df, discoverer = discover_dime(
+        df=df,
+        thresholds=thresholds,
+        extent_threshold=extent_threshold,
+        g3_mode=g3_mode,
+        attributes=DIME_ATTRIBUTES,
+    )
+    discovered_df.to_csv(results_dir / "dime_discovered_all.csv", index=False)
+    minimal_df = discovered_df[discovered_df["is_minimal"]].copy()
+    minimal_df.to_csv(results_dir / "dime_discovered_minimal.csv", index=False)
+
+    rules = rules_from_discovery_frame(minimal_df)
+    metrics_df, _ = _validate_rule_set(
+        df=df,
+        rules=rules,
+        thresholds=thresholds,
+        baseline_permutations=baseline_permutations,
+        random_state=DEFAULT_RANDOM_STATE,
+    )
+    if metrics_df.empty:
+        metrics_df = pd.DataFrame(
+            columns=[
+                "lhs", "rhs", "rule_label", "lhs_length", "total_pairs",
+                "antecedent_pairs", "valid_pairs", "violations", "support",
+                "confidence", "violation_rate", "baseline_confidence",
+                "baseline_confidence_std", "lift",
+            ]
+        )
+    metrics_df = minimal_df.merge(
+        metrics_df,
+        on=["lhs", "rhs", "rule_label", "lhs_length"],
+        how="left",
+    )
+    metrics_df.to_csv(results_dir / "dime_discovered_metrics.csv", index=False)
+
+    ranked = (
+        metrics_df[metrics_df["antecedent_pairs"].fillna(0).gt(0)]
+        .sort_values(
+            ["confidence", "support", "lift", "g3_error", "lhs_length"],
+            ascending=[False, False, False, True, True],
+            na_position="last",
+        )
+        .head(top_k)
+        .reset_index(drop=True)
+    )
+    ranked.to_csv(results_dir / "dime_discovered_top.csv", index=False)
+    ranked.to_csv(results_dir / "rfd_discovered_top10.csv", index=False)
+
+    summary = pd.DataFrame(
+        [
+            {
+                "algorithm": "DiMε",
+                "g3_mode": g3_mode,
+                "extent_threshold": extent_threshold,
+                "threshold_set": thresholds_name,
+                "projection_rows": len(df),
+                "projection_attributes": len(DIME_ATTRIBUTES),
+                "lattice_levels_visited": discoverer.levels_visited_,
+                "candidates_validated": discoverer.candidates_validated_,
+                "discovered_rfds": len(discovered_df),
+                "minimal_rfds": len(minimal_df),
+                "positive_support_rfds": int(metrics_df["antecedent_pairs"].fillna(0).gt(0).sum()),
+            }
+        ]
+    )
+    summary.to_csv(results_dir / "dime_discovery_summary.csv", index=False)
+    return minimal_df, metrics_df, ranked
 
 
 def prepare_rfd_sample(
@@ -374,54 +492,6 @@ def run_station_comparison(
     return results_df
 
 
-def run_lightweight_discovery(
-    df: pd.DataFrame,
-    output_path: Path,
-    thresholds_name: str = "medium",
-    top_k: int = 10,
-) -> pd.DataFrame:
-    """Run lightweight discovery and export top rules."""
-
-    thresholds = THRESHOLD_CONFIGS[thresholds_name]
-    pair_cache = build_pair_index_cache(df)
-    similarity_cache = build_similarity_cache(
-        df,
-        thresholds,
-        DISCOVERY_LHS_ATTRIBUTES + DISCOVERY_RHS_ATTRIBUTES,
-        pair_cache,
-    )
-    results = discover_rfds(
-        df=df,
-        lhs_attributes=DISCOVERY_LHS_ATTRIBUTES,
-        rhs_attributes=DISCOVERY_RHS_ATTRIBUTES,
-        thresholds=thresholds,
-        min_support=0.01,
-        min_confidence=0.85,
-        max_lhs_size=3,
-        top_k=top_k,
-        pair_cache=pair_cache,
-        similarity_cache=similarity_cache,
-    )
-    columns = [
-        "lhs",
-        "rhs",
-        "rule_label",
-        "lhs_length",
-        "total_pairs",
-        "antecedent_pairs",
-        "valid_pairs",
-        "violations",
-        "support",
-        "confidence",
-        "violation_rate",
-    ]
-    output_df = pd.DataFrame([_result_row(result) for result in results], columns=columns)
-    output_path = Path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_df.to_csv(output_path, index=False)
-    return output_df
-
-
 def run_bootstrap_validation(
     df: pd.DataFrame,
     output_path: Path,
@@ -429,10 +499,12 @@ def run_bootstrap_validation(
     iterations: int = BOOTSTRAP_ITERATIONS,
     sample_size: int = DEFAULT_RFD_SAMPLE_SIZE,
     thresholds_name: str = "medium",
+    rules: Iterable[dict[str, object]] | None = None,
 ) -> pd.DataFrame:
     """Repeat balanced bootstrap sampling and summarize RFD metric uncertainty."""
 
     thresholds = THRESHOLD_CONFIGS[thresholds_name]
+    evaluated_rules = list(rules) if rules is not None else CANDIDATE_RULES
     rows: list[dict[str, object]] = []
     for iteration in range(iterations):
         sample_df = prepare_rfd_sample(
@@ -443,7 +515,7 @@ def run_bootstrap_validation(
         )
         iteration_df, _ = _validate_rule_set(
             df=sample_df,
-            rules=CANDIDATE_RULES,
+            rules=evaluated_rules,
             thresholds=thresholds,
             baseline_permutations=BOOTSTRAP_BASELINE_PERMUTATIONS,
             random_state=DEFAULT_RANDOM_STATE + 10_000 + iteration,
@@ -481,10 +553,12 @@ def run_train_test_validation(
     train_end: str = DEFAULT_TRAIN_END,
     test_start: str = DEFAULT_TEST_START,
     thresholds_name: str = "medium",
+    rules: Iterable[dict[str, object]] | None = None,
 ) -> pd.DataFrame:
-    """Validate candidate rules on chronological 75% train and 25% test windows."""
+    """Validate supplied rules on chronological 75% train and 25% test windows."""
 
     thresholds = THRESHOLD_CONFIGS[thresholds_name]
+    evaluated_rules = list(rules) if rules is not None else CANDIDATE_RULES
     train_df = df[df["datetime"] <= pd.Timestamp(train_end)].reset_index(drop=True)
     test_df = df[df["datetime"] >= pd.Timestamp(test_start)].reset_index(drop=True)
     train_sample = prepare_rfd_sample(train_df, random_state=DEFAULT_RANDOM_STATE)
@@ -492,14 +566,14 @@ def run_train_test_validation(
 
     train_metrics, _ = _validate_rule_set(
         train_sample,
-        CANDIDATE_RULES,
+        evaluated_rules,
         thresholds,
         baseline_permutations=DEFAULT_BASELINE_PERMUTATIONS,
         random_state=DEFAULT_RANDOM_STATE,
     )
     test_metrics, _ = _validate_rule_set(
         test_sample,
-        CANDIDATE_RULES,
+        evaluated_rules,
         thresholds,
         baseline_permutations=DEFAULT_BASELINE_PERMUTATIONS,
         random_state=DEFAULT_RANDOM_STATE + 2000,
@@ -539,15 +613,23 @@ def run_window_evolution(
     thresholds_name: str = "medium",
     window: str = "month",
     top_rules: int = 4,
+    rules: Iterable[dict[str, object]] | None = None,
 ) -> pd.DataFrame:
     """Compute RFD metrics over monthly or weekly temporal windows."""
 
     from src.visualization import plot_confidence_over_time
 
     thresholds = THRESHOLD_CONFIGS[thresholds_name]
-    raw_metrics = candidate_metrics_df[candidate_metrics_df["representation"] == "raw"].copy()
-    top_labels = raw_metrics.sort_values(["lift", "confidence"], ascending=False).head(top_rules)["rule_label"].tolist()
-    selected_rules = [rule for rule in CANDIDATE_RULES if rule_to_label(rule["lhs"], rule["rhs"]) in top_labels]
+    if "representation" in candidate_metrics_df.columns:
+        ranked_metrics = candidate_metrics_df[candidate_metrics_df["representation"] == "raw"].copy()
+    else:
+        ranked_metrics = candidate_metrics_df.copy()
+    top_labels = ranked_metrics.sort_values(["lift", "confidence"], ascending=False).head(top_rules)["rule_label"].tolist()
+    available_rules = list(rules) if rules is not None else CANDIDATE_RULES
+    selected_rules = [
+        rule for rule in available_rules
+        if rule_to_label(rule["lhs"], rule["rhs"]) in top_labels
+    ]
 
     work_df = df.copy()
     freq = "W-MON" if window == "week" else "M"
@@ -644,14 +726,22 @@ def run_violation_analysis(
     thresholds_name: str = "medium",
     top_rules: int = 2,
     max_pairs_per_rule: int = 200,
+    rules: Iterable[dict[str, object]] | None = None,
 ) -> pd.DataFrame:
     """Export strongest violating pairs and aggregate their concentration."""
 
     from src.visualization import plot_violations_by_month_station
 
-    raw_metrics = candidate_metrics_df[candidate_metrics_df["representation"] == "raw"].copy()
-    top_labels = raw_metrics.sort_values(["lift", "confidence"], ascending=False).head(top_rules)["rule_label"].tolist()
-    selected_rules = [rule for rule in CANDIDATE_RULES if rule_to_label(rule["lhs"], rule["rhs"]) in top_labels]
+    if "representation" in candidate_metrics_df.columns:
+        ranked_metrics = candidate_metrics_df[candidate_metrics_df["representation"] == "raw"].copy()
+    else:
+        ranked_metrics = candidate_metrics_df.copy()
+    top_labels = ranked_metrics.sort_values(["lift", "confidence"], ascending=False).head(top_rules)["rule_label"].tolist()
+    available_rules = list(rules) if rules is not None else CANDIDATE_RULES
+    selected_rules = [
+        rule for rule in available_rules
+        if rule_to_label(rule["lhs"], rule["rhs"]) in top_labels
+    ]
     thresholds = THRESHOLD_CONFIGS[thresholds_name]
 
     pairs = [

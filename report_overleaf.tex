@@ -17,298 +17,295 @@
 \geometry{margin=2.5cm}
 \setstretch{1.1}
 \graphicspath{{figures/}}
-\hypersetup{
-    colorlinks=true,
-    linkcolor=black,
-    urlcolor=blue,
-    citecolor=black
-}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue,citecolor=black}
 
 \title{\textbf{Profilazione della coerenza della qualit\`a dell'aria urbana mediante Relaxed Functional Dependencies}}
-\author{
-    Nome Cognome \\
-    Matricola: XXXXXXX \\
-    Corso: XXXXXXX
-}
+\author{Nome Cognome \\ Matricola: XXXXXXX \\ Corso: XXXXXXX}
 \date{\today}
 
 \begin{document}
-
 \maketitle
 
 \begin{abstract}
-Questo report presenta un'analisi riproducibile della qualit\`a dell'aria urbana formulata come caso di studio per un \textit{Urban Digital Twin} in senso concettuale. Il dataset impiegato \`e un sottoinsieme del \textit{Beijing Multi-Site Air Quality Data Set}, limitato alle stazioni \textit{Aotizhongxin} e \textit{Changping} nel periodo marzo 2013--febbraio 2017. L'obiettivo \`e valutare se relazioni approssimate tra variabili ambientali possano essere descritte tramite \textit{Relaxed Functional Dependencies} (RFDs), senza forzare artificialmente regole ad alta confidenza. Oltre a preprocessing e profiling, il lavoro introduce una baseline media su 30 permutazioni del lato destro, il lift rispetto al caso casuale, bootstrap, validazione temporale sul primo 75\% rispetto all'ultimo 25\% della finestra, continuous profiling mensile, varianti discretizzate e analisi delle violazioni. Il dataset finale contiene 66619 osservazioni e 11 variabili; gli esperimenti pairwise usano un campione bilanciato di 1500 righe. Tra le RFD candidate analizzate, le pi\`u informative sono quelle sul particolato, in particolare \texttt{station, PM2.5, NO2 $\rightarrow$ PM10}, con confidenza 0.483 e lift 3.24 rispetto alla baseline. Le confidenze restano moderate, ma alcune relazioni sono chiaramente superiori al caso casuale e quindi utili per consistency profiling e continuous profiling, non per inferenza causale.
+Questo lavoro presenta un'analisi riproducibile della qualit\`a dell'aria urbana
+come caso di studio per un \textit{Urban Digital Twin} (UDT) concettuale. Il
+dataset \`e un sottoinsieme del \textit{Beijing Multi-Site Air Quality Data
+Set}, limitato alle stazioni Aotizhongxin e Changping nel periodo marzo
+2013--febbraio 2017. La scoperta delle \textit{Relaxed Functional Dependencies}
+(RFDs) usa DiM$\varepsilon$, algoritmo esplicitamente trattato nel corso KDIID
+e descritto da Caruccio, Deufemia e Polese. L'implementazione comprende matrici
+delle differenze, insiemi di pattern simili stripped, lattice completo degli
+attributi, insiemi candidati $C^+$, pruning e validazione ibrida tramite errore
+$g_3$. Tutte le 66619 osservazioni pulite contribuiscono a una relazione
+analitica di 1676 righe, formata da mediane settimanali per stazione e fascia
+oraria sugli otto attributi di scoperta. Con soglie di similarit\`a
+domain-specific e $g_3 \leq 0.10$, DiM$\varepsilon$ visita otto livelli,
+valida 960 candidati e restituisce 5 RFD minime. La regola con confidenza
+pairwise pi\`u alta \`e
+\texttt{station, PM10, NO2, O3, TEMP $\rightarrow$ WSPM}, con confidenza
+0.899, supporto 0.00161, lift 1.163 e $g_3=0.092$. Permutation baseline,
+bootstrap, validazione temporale, continuous profiling e analisi delle
+violazioni sono applicati esclusivamente dopo la scoperta. Le RFD descrivono
+regolarit\`a approssimate e non relazioni causali.
 \end{abstract}
 
 \section{Introduzione}
-Il paradigma di \textit{Urban Digital Twin} viene spesso associato a rappresentazioni digitali integrate del sistema urbano. In questo progetto il termine \`e usato in modo volutamente minimo: non si costruisce una piattaforma 3D o un'infrastruttura real-time, ma un supporto analitico riproducibile per lo studio di coerenze e anomalie in dati ambientali storici.
+Nel progetto l'UDT non \`e una piattaforma 3D o real-time, ma una cornice
+analitica per descrivere coerenze e possibili anomalie in dati ambientali
+storici. Le RFD sostituiscono l'uguaglianza rigida delle dipendenze funzionali
+con vincoli di similarit\`a e possono ammettere eccezioni
+\cite{rfd-survey}. Questo le rende adatte a fenomeni rumorosi e influenzati da
+variabili non osservate.
 
-L'approccio adottato si basa sulle \textit{Relaxed Functional Dependencies} \cite{rfd-survey}. Una RFD estende la dipendenza funzionale classica sostituendo l'uguaglianza esatta con la similarit\`a: se due tuple sono sufficientemente simili sul lato sinistro, ci si attende che rimangano simili anche sul lato destro. In un dominio come la qualit\`a dell'aria, questa impostazione \`e preferibile a regole deterministiche rigide, perch\'e i fenomeni osservati sono variabili, rumorosi e influenzati da fattori non misurati.
-
-L'obiettivo del lavoro \`e duplice: da un lato descrivere in modo sintetico il comportamento del dataset, dall'altro verificare se emergano regolarit\`a approssimate interpretabili tra inquinanti e covariate meteorologiche.
-
-Pi\`u precisamente, il progetto si propone di:
-\begin{enumerate}[leftmargin=1.2cm]
-    \item costruire un dataset pulito e documentato a partire da dati grezzi di monitoraggio ambientale;
-    \item produrre un profiling descrittivo utile a contestualizzare le successive verifiche di coerenza;
-    \item validare un piccolo insieme di regole RFD motivate da intuizioni ambientali plausibili;
-    \item confrontare il comportamento delle regole al variare delle soglie di similarit\`a e tra stazioni diverse;
-    \item discutere le violazioni come possibili segnali di eterogeneit\`a, rumore o fattori non osservati.
-\end{enumerate}
+Gli obiettivi sono: costruire e profilare un dataset pulito; scoprire RFD
+minime con un algoritmo del corso; misurare supporto, confidenza e lift delle
+RFD scoperte; verificarne robustezza temporale; esportare le coppie violanti.
+Le regole selezionate manualmente restano soltanto un confronto supplementare.
 
 \section{Dati e preprocessing}
-Il dataset di partenza \`e il \textit{Beijing Multi-Site Air Quality Data Set} della UCI Machine Learning Repository \cite{uci}. Il disegno sperimentale seleziona le stazioni \texttt{Aotizhongxin} e \texttt{Changping} per consentire un confronto bilanciato tra due siti e, allo stesso tempo, contenere il costo quadratico della validazione pairwise. La pipeline resta estendibile ad altre stazioni, mentre i risultati qui discussi sono intenzionalmente riferiti alla coppia selezionata. La finestra temporale definitiva va dal 1 marzo 2013 al 28 febbraio 2017 e coincide con la copertura comune completa dei due siti.
+La sorgente \`e il \textit{Beijing Multi-Site Air Quality Data Set} della UCI
+\cite{uci}. Sono usate le due stazioni disponibili localmente,
+\texttt{Aotizhongxin} e \texttt{Changping}, nell'intera copertura comune dal
+1 marzo 2013 al 28 febbraio 2017. Dopo il riepilogo dei valori mancanti, le
+righe incomplete sulle colonne selezionate vengono eliminate senza
+imputazione. Il dataset pulito contiene 66619 righe e 11 colonne.
 
-Le variabili finali sono:
-\texttt{datetime}, \texttt{station}, \texttt{hour}, \texttt{PM2.5}, \texttt{PM10}, \texttt{NO2}, \texttt{O3}, \texttt{TEMP}, \texttt{DEWP}, \texttt{WSPM}, \texttt{time\_slot}. La variabile \texttt{time\_slot} aggrega l'ora in quattro classi: \texttt{night}, \texttt{morning}, \texttt{afternoon}, \texttt{evening}. La gestione dei mancanti \`e stata intenzionalmente semplice: calcolo del riepilogo, eliminazione delle righe incomplete sulle colonne finali e nessuna imputazione.
-
-La scelta di limitare il numero di variabili risponde a due esigenze. La prima \`e interpretativa: conviene mantenere solo attributi direttamente leggibili e rilevanti per l'analisi delle RFD. La seconda \`e computazionale: poich\'e la validazione delle regole richiede confronti pairwise, una selezione pi\`u compatta riduce il costo senza impoverire eccessivamente il contenuto informativo.
+Il profiling usa tutte le righe. Per DiM$\varepsilon$ si costruisce invece una
+relazione analitica domain-driven: per ogni settimana, stazione e
+\texttt{time\_slot} si calcola la mediana di \texttt{PM2.5}, \texttt{PM10},
+\texttt{NO2}, \texttt{O3}, \texttt{TEMP} e \texttt{WSPM}. Ne risultano 1676
+righe, che rappresentano tutte le 66619 osservazioni originarie. La chiave
+temporale e il numero di righe sorgente sono mantenuti per lineage ma non
+partecipano alla scoperta.
 
 \begin{table}[H]
 \centering
-\caption{Sintesi del dataset finale}
+\caption{Dataset e relazione analitica DiM$\varepsilon$}
 \begin{tabular}{lr}
 \toprule
 Indicatore & Valore \\
 \midrule
-Righe & 66619 \\
-Colonne & 11 \\
+Righe pulite & 66619 \\
+Colonne pulite & 11 \\
 Aotizhongxin & 32779 \\
 Changping & 33840 \\
-Campione RFD bilanciato & 1500 \\
-Coppie valutate negli esperimenti RFD & 1\,124\,250 \\
+Righe della relazione DiM$\varepsilon$ & 1676 \\
+Attributi di scoperta & 8 \\
+Coppie nella relazione DiM$\varepsilon$ & 1\,403\,650 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\begin{table}[H]
-\centering
-\caption{Distribuzione del dataset per stazione e fascia oraria}
-\begin{tabular}{lrr}
-\toprule
-Categoria & Righe & Percentuale \\
-\midrule
-Aotizhongxin & 32779 & 49.20\% \\
-Changping & 33840 & 50.80\% \\
-night & 16270 & 24.42\% \\
-morning & 16823 & 25.25\% \\
-afternoon & 16645 & 24.99\% \\
-evening & 16881 & 25.34\% \\
-\bottomrule
-\end{tabular}
-\end{table}
+La relazione contiene
+\texttt{station}, \texttt{time\_slot}, \texttt{PM2.5}, \texttt{PM10},
+\texttt{NO2}, \texttt{O3}, \texttt{TEMP}, \texttt{WSPM}. Questa scelta
+preserva sito, contesto intra-giornaliero, inquinanti e vento/temperatura,
+limitando al contempo il costo quadratico delle matrici delle differenze. Non
+viene imposto alcun limite alla dimensione del lato sinistro.
 
-\section{Metodo}
-La pipeline comprende quattro passaggi: preprocessing, profiling, validazione di regole candidate e scoperta leggera di nuove RFD. Il profiling include statistiche descrittive, distribuzioni di \texttt{PM2.5} e \texttt{NO2}, serie temporale della media giornaliera di \texttt{PM2.5} e matrice di correlazione.
-
-Per una regola $X \rightarrow Y$ si definiscono:
-\[
-\text{support} = \frac{\text{antecedent\_pairs}}{\text{total\_pairs}}, \qquad
-\text{confidence} = \frac{\text{valid\_pairs}}{\text{antecedent\_pairs}}
-\]
-mentre il \textit{violation rate} \`e dato da $1-\text{confidence}$. Per evitare di interpretare una confidenza grezza come evidenza sostanziale, si calcola anche una baseline: i valori del lato destro vengono permutati casualmente 30 volte con seed fissato e la confidenza viene ricalcolata mantenendo invariata la struttura delle coppie antecedenti. La baseline riportata \`e la media delle 30 confidenze; la relativa deviazione standard viene esportata nei CSV per quantificare la variabilit\`a della procedura. Il lift \`e quindi:
-\[
-\text{lift} = \frac{\text{confidence}}{\text{baseline\_confidence}}.
-\]
-
-In questa formulazione, il supporto misura la frequenza con cui il lato sinistro trova effettivamente coppie comparabili nel dataset, mentre la confidenza misura la tenuta della regola dentro quel sottoinsieme di confronti. La baseline \`e necessaria perch\'e alcune variabili possono apparire simili frequentemente anche per effetto della distribuzione marginale; una regola \`e quindi pi\`u interessante quando mostra lift superiore a 1, non solo quando ha confidenza elevata. Una regola con supporto molto basso pu\`o risultare poco informativa anche se avesse buona confidenza; viceversa una regola con supporto accettabile ma bassa confidenza segnala che la relazione ipotizzata non \`e sufficientemente stabile.
-
-La similarit\`a \`e definita tramite:
-\begin{itemize}[leftmargin=1.2cm]
-    \item uguaglianza esatta per \texttt{station} e \texttt{time\_slot};
-    \item distanza circolare massima di 1 ora per \texttt{hour};
-    \item soglie assolute per le variabili numeriche.
-\end{itemize}
-
-Le tre configurazioni adottate sono \texttt{strict}, \texttt{medium} e \texttt{relaxed}. In configurazione \texttt{medium}, ad esempio, le soglie sono 2.0 per \texttt{TEMP} e \texttt{DEWP}, 1.0 per \texttt{WSPM}, 10.0 per \texttt{PM2.5}, 15.0 per \texttt{PM10}, 10.0 per \texttt{NO2} e 10.0 per \texttt{O3}.
-
-\begin{table}[H]
-\centering
-\caption{Configurazioni di similarit\`a}
-\begin{tabular}{lccc}
-\toprule
-Attributo & strict & medium & relaxed \\
-\midrule
-\texttt{station} & equal & equal & equal \\
-\texttt{time\_slot} & equal & equal & equal \\
-\texttt{hour} & 1 & 1 & 1 \\
-\texttt{TEMP} & 1.0 & 2.0 & 3.0 \\
-\texttt{DEWP} & 1.0 & 2.0 & 3.0 \\
-\texttt{WSPM} & 0.5 & 1.0 & 2.0 \\
-\texttt{PM2.5} & 5.0 & 10.0 & 15.0 \\
-\texttt{PM10} & 10.0 & 15.0 & 25.0 \\
-\texttt{NO2} & 5.0 & 10.0 & 15.0 \\
-\texttt{O3} & 5.0 & 10.0 & 15.0 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Le RFD candidate valutate esplicitamente sono:
-\begin{enumerate}[leftmargin=1.2cm]
-    \item \texttt{station, PM2.5 $\rightarrow$ PM10};
-    \item \texttt{station, time\_slot, PM2.5 $\rightarrow$ PM10};
-    \item \texttt{station, PM2.5, NO2 $\rightarrow$ PM10};
-    \item \texttt{station, hour, TEMP, WSPM $\rightarrow$ O3};
-    \item \texttt{station, time\_slot, TEMP, WSPM $\rightarrow$ O3};
-    \item \texttt{station, time\_slot, NO2 $\rightarrow$ O3};
-    \item \texttt{station, TEMP, DEWP, WSPM $\rightarrow$ PM2.5}.
-\end{enumerate}
-
-La scoperta automatica \cite{rfd-mining} considera lati sinistri di dimensione 1--3, con attributi scelti tra \texttt{station}, \texttt{hour}, \texttt{time\_slot}, \texttt{TEMP}, \texttt{DEWP}, \texttt{WSPM}, \texttt{PM2.5}, \texttt{NO2}, e lati destri tra \texttt{PM2.5}, \texttt{PM10}, \texttt{NO2}, \texttt{O3}. Una regola viene mantenuta solo se soddisfa \textit{support} $\geq 0.01$ e \textit{confidence} $\geq 0.85$.
-
-Poich\'e il confronto esaustivo tra tuple cresce quadraticamente, gli esperimenti RFD non vengono condotti sul dataset completo ma su un campione deterministico bilanciato di 1500 righe, ottenuto estraendo 750 osservazioni per stazione. Il profiling, invece, resta calcolato sull'intero dataset pulito. Questa separazione tra fase descrittiva e fase pairwise consente di mantenere sia leggibilit\`a statistica sia sostenibilit\`a computazionale.
-
-La robustezza delle regole viene valutata con quattro estensioni. Primo, un bootstrap bilanciato di 30 ripetizioni stima media, deviazione standard e intervalli empirici al 95\% di supporto, confidenza e lift. Secondo, una validazione temporale usa il periodo marzo 2013--febbraio 2016 come train e marzo 2016--febbraio 2017 come test, preservando lo schema cronologico 75/25. Terzo, il continuous profiling calcola le metriche su finestre mensili, evidenziando cambiamenti bruschi di confidenza o lift. Quarto, una variante discretizzata trasforma \texttt{PM2.5}, \texttt{PM10}, \texttt{NO2}, \texttt{O3}, \texttt{TEMP}, \texttt{DEWP} e \texttt{WSPM} in classi \textit{low}, \textit{medium}, \textit{high} basate sui quantili, per confrontare regole raw e binned.
-
-\section{Risultati}
-Il dataset finale risulta completo sulle variabili selezionate. Le statistiche descrittive mostrano valori medi pari a 76.53 per \texttt{PM2.5}, 101.95 per \texttt{PM10}, 51.51 per \texttt{NO2} e 56.91 per \texttt{O3}. Le correlazioni pi\`u forti sono quelle tra \texttt{PM2.5} e \texttt{PM10} (0.874), tra \texttt{TEMP} e \texttt{DEWP} (0.823), tra \texttt{PM2.5} e \texttt{NO2} (0.679), e tra \texttt{PM10} e \texttt{NO2} (0.647). \texttt{NO2} e \texttt{O3} mostrano invece una correlazione negativa moderata (-0.477).
-
-\begin{table}[H]
-\centering
-\caption{Statistiche descrittive delle principali variabili numeriche}
-\begin{tabular}{lrrrr}
-\toprule
-Variabile & Min & Max & Media & Dev. std. \\
-\midrule
-\texttt{PM2.5} & 2.0 & 713.0 & 76.53 & 77.26 \\
-\texttt{PM10} & 2.0 & 992.0 & 101.95 & 89.59 \\
-\texttt{NO2} & 1.8477 & 290.0 & 51.51 & 34.34 \\
-\texttt{O3} & 0.2142 & 429.0 & 56.91 & 55.94 \\
-\texttt{TEMP} & -16.8 & 41.4 & 13.67 & 11.40 \\
-\texttt{DEWP} & -35.3 & 28.5 & 2.30 & 13.82 \\
-\texttt{WSPM} & 0.0 & 11.2 & 1.79 & 1.26 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Le distribuzioni di \texttt{PM2.5} e \texttt{NO2} mostrano una marcata dispersione, con presenza di valori elevati e forte variabilit\`a, aspetto che gi\`a suggerisce la difficolt\`a di ottenere regole molto stabili con soglie moderate. La serie temporale di \texttt{PM2.5}, aggregata come media giornaliera per stazione, mette inoltre in evidenza fasi di innalzamento e riduzione non uniformi tra i due siti.
+\section{Profiling descrittivo}
+Le medie sul dataset orario pulito sono 76.53 per \texttt{PM2.5}, 101.95 per
+\texttt{PM10}, 51.51 per \texttt{NO2} e 56.91 per \texttt{O3}. Le
+correlazioni pi\`u forti sono \texttt{PM2.5}--\texttt{PM10} (0.874),
+\texttt{TEMP}--\texttt{DEWP} (0.823) e
+\texttt{PM2.5}--\texttt{NO2} (0.679). Questi valori sono descrittivi e non
+costituiscono input o scorciatoie per la scoperta DiM$\varepsilon$.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.78\textwidth]{pm25_timeseries.png}
-\caption{Media giornaliera di \texttt{PM2.5} per stazione nel periodo analizzato.}
+\caption{Media giornaliera di \texttt{PM2.5} per stazione.}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.78\textwidth]{correlation_matrix.png}
-\caption{Matrice di correlazione delle variabili numeriche principali.}
+\caption{Matrice di correlazione sul dataset pulito.}
 \end{figure}
 
-I risultati della validazione delle regole candidate in configurazione \texttt{medium} sono sintetizzati nella Tabella~\ref{tab:candidate}. Nessuna regola viene presentata come dipendenza forte: le confidenze restano tra 0.15 e 0.48. Tuttavia il confronto con la baseline cambia l'interpretazione. Le due regole pi\`u specifiche sul particolato hanno lift superiore a 3, mentre la terza si avvicina a tale valore; tutte sono nettamente pi\`u informative di una permutazione casuale del lato destro.
+\section{RFD discovery algorithm: DiM$\varepsilon$}
+DiM$\varepsilon$ (\textit{Difference Matrices and $\varepsilon$-thresholds})
+\`e l'algoritmo del corso usato come metodo principale
+\cite{rfd-mining}. L'input \`e una relazione, una funzione di distanza e una
+soglia di similarit\`a per ogni attributo, pi\`u una soglia di estensione
+$\varepsilon$ per l'errore $g_3$. L'output \`e l'insieme delle RFD minime che
+soddisfano tali vincoli.
+
+L'implementazione segue i passi dell'algoritmo:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item costruzione della matrice delle differenze per ogni attributo;
+    \item derivazione dei pattern di tuple simili e degli insiemi stripped,
+    eliminando i pattern singleton;
+    \item costruzione level-wise del lattice completo degli otto attributi;
+    \item generazione dei candidati $X\setminus\{A\}\rightarrow A$ mediante
+    gli insiemi $C^+(X)$;
+    \item validazione esatta mediante refinement/cardinalit\`a degli insiemi
+    stripped quando non sono ammesse eccezioni;
+    \item validazione ibrida tramite $g_3$, cio\`e la quota minima di tuple da
+    rimuovere per rendere valida la RFD;
+    \item applicazione dei bound DiM$\varepsilon$, del pruning dei candidati,
+    del pruning delle chiavi e del controllo di minimalit\`a;
+    \item join dei nodi compatibili per generare il livello successivo.
+\end{enumerate}
 
 \begin{table}[H]
 \centering
-\caption{RFD candidate raw con baseline media su 30 permutazioni}
-\label{tab:candidate}
+\caption{Tracciabilit\`a dei passi DiM$\varepsilon$}
+\small
+\begin{tabularx}{\textwidth}{p{0.27\textwidth} >{\raggedright\arraybackslash}X p{0.25\textwidth}}
+\toprule
+Passo implementato & Funzioni principali & Fonte \\
+\midrule
+Matrici delle differenze &
+\texttt{build\_difference\_matrices} &
+Lezione 3, slide 30--31; Definizione 2 \cite{rfd-discussion} \\
+Pattern simili e insiemi stripped &
+\texttt{StrippedSimilarSubsets} &
+Lezione 3, slide 32--35; Definizione 3 \cite{rfd-discussion} \\
+Lattice completo e $C^+$ &
+\texttt{\_initialize\_candidates}, \texttt{\_generate\_next\_level} &
+Lezione 3, slide 29--30; Sezione 4 \cite{rfd-discussion} \\
+Refinement e cardinalit\`a &
+\texttt{\_validate} &
+Lezione 3, slide 36--39; Lemmi 1--2 \cite{rfd-discussion} \\
+$g_3$, caso disgiunto e vertex cover &
+\texttt{\_g3\_error}, \texttt{\_official\_greedy\_vertex\_cover} &
+Lezione 3, slide 40--41; Sezione 4 \cite{rfd-discussion} \\
+Bound, pruning e RFD minime &
+\texttt{\_compute\_dependencies}, \texttt{\_prune\_keys} &
+Lezione 3, slide 29--30 e 41; distribuzione ufficiale \cite{dime-software} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Per attributi numerici si usa la differenza assoluta; per
+\texttt{station} e \texttt{time\_slot} l'uguaglianza. Le soglie \texttt{medium}
+sono: 10 per \texttt{PM2.5}, 15 per \texttt{PM10}, 10 per \texttt{NO2},
+10 per \texttt{O3}, 2 per \texttt{TEMP} e 1 per \texttt{WSPM}. La soglia
+di estensione \`e $g_3\leq0.10$. Poich\'e il calcolo generale di $g_3$ per
+RFD ibride \`e NP-completo, il run principale usa l'approssimazione greedy
+vertex-cover prevista da DiM$\varepsilon$; il modulo espone anche la modalit\`a
+esatta di decisione vertex-cover prevista dall'implementazione di riferimento,
+con limite derivato esclusivamente dalla soglia di estensione richiesta.
+
+Come controllo indipendente, l'algoritmo \`e stato eseguito sul file
+\texttt{iris.csv} distribuito dagli autori, con gli stessi parametri
+\texttt{maxthr=1}, \texttt{maxcovthr=1} e modalit\`a greedy. Il JAR ufficiale
+riporta 5 RFD:
+\texttt{$\emptyset\rightarrow B$},
+\texttt{$E\rightarrow D$},
+\texttt{$E\rightarrow A$},
+\texttt{$E\rightarrow C$} e
+\texttt{$A,C\rightarrow D$}. L'implementazione Python restituisce esattamente
+lo stesso insieme, senza regole mancanti o aggiuntive; registra inoltre,
+nello stesso ordine logico, $g_3=$ 0.0133, 0, 0.0267, 0.0200 e 0.0933. Il JAR
+non esporta il $g_3$ per singola regola, quindi il confronto esatto verificabile
+riguarda cardinalit\`a e identit\`a delle dipendenze.
+
+\section{Metriche e analisi post-discovery}
+Le metriche pairwise non determinano quali regole DiM$\varepsilon$ scopre, ma
+servono a ordinarle e interpretarle dopo la scoperta:
+\[
+\mathrm{support}=\frac{\mathrm{antecedent\ pairs}}{\mathrm{total\ pairs}},
+\qquad
+\mathrm{confidence}=\frac{\mathrm{valid\ pairs}}{\mathrm{antecedent\ pairs}}.
+\]
+La baseline \`e la confidenza media su 30 permutazioni seeded del RHS e
+\[
+\mathrm{lift}=\frac{\mathrm{confidence}}{\mathrm{baseline\ confidence}}.
+\]
+Le prime quattro RFD
+vengono inoltre analizzate con 30 bootstrap bilanciati, split temporale
+2013--2016/2016--2017, finestre mensili e coppie violanti. Queste analisi sono
+successive a DiM$\varepsilon$ e non modificano il risultato della scoperta.
+
+\section{Risultati}
+DiM$\varepsilon$ visita tutti gli 8 livelli del lattice, valida 960 candidati e
+scopre 5 RFD, tutte minime e con supporto positivo.
+
+\begin{table}[H]
+\centering
+\caption{Top RFD scoperte da DiM$\varepsilon$}
+\label{tab:dime}
+\small
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X r r r r}
 \toprule
-Regola & Support & Conf. & Baseline & Lift \\
+Regola & $g_3$ & Support & Conf. & Lift \\
 \midrule
-\texttt{station, PM2.5, NO2 $\rightarrow$ PM10} & 0.025 & 0.483 & 0.149 & 3.24 \\
-\texttt{station, time\_slot, PM2.5 $\rightarrow$ PM10} & 0.018 & 0.449 & 0.148 & 3.04 \\
-\texttt{station, PM2.5 $\rightarrow$ PM10} & 0.073 & 0.434 & 0.147 & 2.94 \\
-\texttt{station, hour, TEMP, WSPM $\rightarrow$ O3} & 0.004 & 0.275 & 0.162 & 1.70 \\
-\texttt{station, time\_slot, TEMP, WSPM $\rightarrow$ O3} & 0.008 & 0.267 & 0.163 & 1.64 \\
-\texttt{station, time\_slot, NO2 $\rightarrow$ O3} & 0.027 & 0.232 & 0.161 & 1.44 \\
-\texttt{station, TEMP, DEWP, WSPM $\rightarrow$ PM2.5} & 0.007 & 0.152 & 0.146 & 1.04 \\
+\texttt{station, PM10, NO2, O3, TEMP $\rightarrow$ WSPM}
+& 0.092 & 0.00161 & 0.899 & 1.163 \\
+\texttt{PM2.5, PM10, NO2, O3, TEMP $\rightarrow$ WSPM}
+& 0.074 & 0.00127 & 0.889 & 1.155 \\
+\texttt{station, PM2.5, NO2, O3, TEMP $\rightarrow$ WSPM}
+& 0.087 & 0.00138 & 0.887 & 1.151 \\
+\texttt{station, PM2.5, PM10, O3, TEMP $\rightarrow$ WSPM}
+& 0.081 & 0.00127 & 0.887 & 1.147 \\
+\texttt{time\_slot $\rightarrow$ WSPM}
+& 0.047 & 0.24955 & 0.858 & 1.113 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-La regola pi\`u informativa \`e \texttt{station, PM2.5, NO2 $\rightarrow$ PM10}. La confidenza pari a 0.483 non giustifica una lettura deterministica, ma il lift 3.24 indica che la coerenza osservata non \`e spiegabile solo dalla distribuzione marginale di \texttt{PM10}. Anche le due varianti pi\`u semplici sul legame \texttt{PM2.5}--\texttt{PM10} hanno lift intorno a 3. Dal punto di vista ambientale il risultato \`e plausibile: \texttt{PM2.5} rappresenta la frazione fine inclusa nel particolato \texttt{PM10}, quindi osservazioni simili di \texttt{PM2.5} nello stesso sito tendono spesso ad accompagnarsi a livelli simili di \texttt{PM10}; l'aggiunta di \texttt{NO2} pu\`o inoltre catturare condizioni emissive condivise, per esempio associate alla combustione. Questa co-variazione non implica per\`o che \texttt{PM2.5} o \texttt{NO2} causino \texttt{PM10}: la regola descrive una regolarit\`a di coerenza e pu\`o riflettere sorgenti comuni, meteorologia e composizione del particolato. Al contrario, la regola meteorologica verso \texttt{PM2.5} ha lift 1.04: \`e sostanzialmente allineata al caso casuale e quindi poco difendibile come regolarit\`a.
+Quattro delle cinque regole raggiungono confidenza elevata ma supporto pairwise
+molto basso: devono essere interpretate come regolarit\`a specifiche di regioni
+locali e dense dello spazio di similarit\`a.
+\texttt{time\_slot $\rightarrow$ WSPM} \`e la RFD scoperta pi\`u generale,
+perch\'e ha supporto 0.24955, pur con un lift pi\`u contenuto. La differenza tra
+$g_3$ e violation rate non \`e una
+contraddizione: $g_3$ conta tuple da rimuovere, mentre la confidenza conta
+coppie valide.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.78\textwidth]{rfd_lift_vs_baseline.png}
-\caption{Confidenza osservata rispetto alla baseline ottenuta permutando il lato destro.}
-\end{figure}
-
-La variazione delle soglie conferma che soglie pi\`u rilassate aumentano la confidenza, ma questo non deve essere usato per forzare regole artificialmente alte. Ad esempio \texttt{station, PM2.5, NO2 $\rightarrow$ PM10} passa da 0.384 in configurazione \texttt{strict} a 0.630 in configurazione \texttt{relaxed}; \texttt{station, PM2.5 $\rightarrow$ PM10} passa da 0.338 a 0.576. Nessuna regola raggiunge comunque una confidenza tale da poter essere trattata come vincolo quasi-deterministico.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.82\textwidth]{rfd_confidence_by_threshold.png}
-\caption{Confidenza delle regole candidate nelle tre configurazioni di soglia.}
-\end{figure}
-
-La variante discretizzata produce confidenze pi\`u alte, come atteso, perch\'e le classi \textit{low}, \textit{medium} e \textit{high} riducono la granularit\`a del confronto. La migliore RFD candidate binned, \texttt{station, PM2.5\_bin, NO2\_bin $\rightarrow$ PM10\_bin}, raggiunge confidenza 0.689 e lift 2.07. Questo risultato \`e utile per profiling qualitativo, ma non va confrontato direttamente con la versione raw come se misurasse la stessa severit\`a: la discretizzazione rende la similarit\`a meno esigente.
-
-\begin{table}[H]
-\centering
-\caption{RFD candidate discretizzate con baseline media su 30 permutazioni}
-\label{tab:binned}
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X r r r r}
-\toprule
-Regola & Support & Conf. & Baseline & Lift \\
-\midrule
-\texttt{station, PM2.5\_bin, NO2\_bin $\rightarrow$ PM10\_bin} & 0.079 & 0.689 & 0.333 & 2.07 \\
-\texttt{station, time\_slot, PM2.5\_bin $\rightarrow$ PM10\_bin} & 0.042 & 0.638 & 0.333 & 1.92 \\
-\texttt{station, PM2.5\_bin $\rightarrow$ PM10\_bin} & 0.167 & 0.629 & 0.333 & 1.89 \\
-\texttt{station, time\_slot, TEMP\_bin, WSPM\_bin $\rightarrow$ O3\_bin} & 0.015 & 0.551 & 0.333 & 1.65 \\
-\texttt{station, time\_slot, NO2\_bin $\rightarrow$ O3\_bin} & 0.045 & 0.527 & 0.332 & 1.59 \\
-\texttt{station, TEMP\_bin, DEWP\_bin, WSPM\_bin $\rightarrow$ PM2.5\_bin} & 0.032 & 0.405 & 0.333 & 1.21 \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-Il bootstrap a 30 ripetizioni conferma la stabilit\`a relativa delle regole sul particolato. Per \texttt{station, PM2.5, NO2 $\rightarrow$ PM10}, la confidenza media \`e 0.486, mentre il lift medio \`e 3.35 con intervallo empirico 95\% tra 3.15 e 3.57. Per \texttt{station, PM2.5 $\rightarrow$ PM10}, il lift medio \`e 3.00. Le regole su \texttt{O3} mostrano lift medio tra 1.45 e 1.75, quindi sono pi\`u deboli ma ancora superiori alla baseline.
-
-\begin{table}[H]
-\centering
-\caption{Sintesi bootstrap delle principali RFD raw}
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X r r r}
-\toprule
-Regola & Conf. media & Lift medio & CI 95\% lift \\
-\midrule
-\texttt{station, PM2.5, NO2 $\rightarrow$ PM10} & 0.486 & 3.35 & [3.15, 3.57] \\
-\texttt{station, time\_slot, PM2.5 $\rightarrow$ PM10} & 0.444 & 3.06 & [2.89, 3.22] \\
-\texttt{station, PM2.5 $\rightarrow$ PM10} & 0.436 & 3.00 & [2.85, 3.16] \\
-\texttt{station, hour, TEMP, WSPM $\rightarrow$ O3} & 0.284 & 1.75 & [1.67, 1.85] \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-La validazione temporale usa marzo 2013--febbraio 2016 come train e marzo 2016--febbraio 2017 come test. Le regole sul particolato rimangono informative anche nel test: \texttt{station, PM2.5, NO2 $\rightarrow$ PM10} passa da confidenza 0.444 e lift 3.15 nel train a confidenza 0.528 e lift 3.35 nel test. Anche \texttt{station, PM2.5 $\rightarrow$ PM10} resta stabile in termini di lift, da 2.82 a 3.09. Le regole su \texttt{O3} mostrano variazioni pi\`u contenute: \texttt{station, time\_slot, NO2 $\rightarrow$ O3} passa da confidenza 0.222 e lift 1.42 nel train a 0.219 e 1.46 nel test.
-
-Il continuous profiling mensile, calcolato su 48 finestre, evidenzia una marcata variabilit\`a stagionale. Per le tre regole sul particolato la confidenza mensile varia approssimativamente tra 0.21 e 0.82; per la regola \texttt{station, hour, TEMP, WSPM $\rightarrow$ O3} la confidenza varia tra 0.19 e 0.83. I cambiamenti bruschi sono segnalati nel file \texttt{results/rfd\_window\_evolution.csv} e nella Figura~\ref{fig:confidence-over-time}; vanno letti come cambiamenti di regime o eterogeneit\`a stagionale, non come prova causale. In particolare, confidence e lift mensili devono essere interpretati insieme a support e \texttt{antecedent\_pairs}, entrambi esportati per ogni finestra: stime basate su poche coppie antecedenti sono meno robuste e non sono direttamente confrontabili con mesi che offrono molti pi\`u confronti informativi.
+Il bootstrap conferma la stabilit\`a locale delle quattro RFD selezionate. Per
+la prima regola la confidenza media \`e 0.930 e il lift medio 1.207, con
+intervallo empirico al 95\% del lift $[1.171,1.244]$. Le altre tre mostrano
+lift medio tra 1.198 e 1.203. Nello split temporale, la prima regola passa da
+confidenza 0.888 nel train a 0.937 nel test; le altre passano da circa
+0.866--0.873 a 0.948--0.953. Il supporto resta tuttavia inferiore a 0.003:
+questa limitazione deve accompagnare qualsiasi interpretazione.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.82\textwidth]{rfd_confidence_over_time.png}
-\caption{Evoluzione mensile della confidenza per le principali RFD.}
-\label{fig:confidence-over-time}
+\caption{Continuous profiling mensile delle RFD scoperte da DiM$\varepsilon$.}
 \end{figure}
 
-La scoperta leggera non restituisce alcuna RFD candidate che superi entrambi i filtri finali di \textit{support} $\geq 0.01$ e \textit{confidence} $\geq 0.85$. Il file \texttt{results/rfd\_discovered\_top10.csv} viene quindi esportato con la sola intestazione. Questo esito negativo \`e coerente con la scelta metodologica: non si forzano soglie o discretizzazioni per produrre RFD forti, ma si descrivono regolarit\`a approssimate e il loro margine rispetto alla baseline.
-
-Un ulteriore elemento utile \`e l'analisi delle violazioni esportate. Per le due migliori RFD raw vengono salvate le coppie pi\`u violanti in \texttt{results/rfd\_top\_violating\_pairs.csv}; la concentrazione viene poi aggregata per stazione, mese e fascia oraria in \texttt{results/rfd\_violations\_summary.csv}. Per la regola \texttt{station, PM2.5, NO2 $\rightarrow$ PM10}, il gruppo pi\`u numeroso tra le coppie selezionate riguarda \texttt{Changping}, marzo 2014 e fascia \texttt{evening}: 67 coppie, con differenza media di \texttt{PM10} pari a 167.57. Questo non implica necessariamente errore di misura: pu\`o riflettere eterogeneit\`a locale, eventi emissivi non osservati, condizioni meteorologiche non incluse o differenze nella composizione del particolato.
+Le coppie con violazione pi\`u forte sono esportate per le prime due RFD. Per
+\texttt{station, PM10, NO2, O3, TEMP $\rightarrow$ WSPM}, il gruppo pi\`u
+numeroso tra le 200 coppie selezionate \`e Changping, gennaio 2016,
+\texttt{afternoon}: 9 coppie, differenza media di \texttt{WSPM} 2.22 e
+massima 3.40. Una violazione pu\`o riflettere anomalie, problemi di qualit\`a
+del dato o eventi non osservati; non viene automaticamente classificata come
+errore.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.78\textwidth]{rfd_violations_by_month_station.png}
-\caption{Concentrazione delle coppie pi\`u violanti per mese e stazione.}
+\caption{Concentrazione delle coppie violanti per mese e stazione.}
 \end{figure}
 
+Le precedenti regole manuali e le varianti binned sono mantenute soltanto nei
+CSV supplementari dedicati. Non
+costituiscono il metodo principale e non vengono presentate come output della
+scoperta.
+
 \section{Discussione e conclusioni}
-Il risultato complessivo \`e coerente con il dominio applicativo. La qualit\`a dell'aria urbana dipende da un insieme ampio di fattori atmosferici e antropici, molti dei quali non sono rappresentati nel dataset ridotto. In questo contesto, \`e plausibile che regole interpretabili basate su pochi attributi abbiano una capacit\`a descrittiva limitata.
+Il progetto usa DiM$\varepsilon$ come algoritmo di scoperta del corso, senza
+limiti artificiali alla dimensione del LHS e senza sostituirlo con una ricerca
+custom di combinazioni. La riduzione computazionale avviene sul dato:
+un'aggregazione domain-driven usa tutte le osservazioni e preserva stazione e
+fascia oraria. Questa scelta rende trattabile il costo pairwise quadratico, ma
+sposta il significato delle RFD dal livello orario al profilo settimanale.
 
-Il contributo principale del lavoro non sta quindi nell'identificazione di dipendenze forti, ma nella costruzione di un workflow riproducibile di \textit{consistency profiling} e \textit{continuous profiling}. Le RFD si rivelano utili per:
-\begin{itemize}[leftmargin=1.2cm]
-    \item verificare la coerenza approssimata tra variabili ambientali;
-    \item confrontare ogni regola con una baseline casuale tramite lift;
-    \item stimare l'incertezza con bootstrap;
-    \item confrontare la stabilit\`a delle regole al variare delle soglie e nel tempo;
-    \item evidenziare violazioni potenzialmente interessanti per stazione, mese e fascia oraria;
-    \item mantenere un elevato livello di interpretabilit\`a.
-\end{itemize}
-
-Restano tuttavia chiari i limiti del lavoro: l'UDT \`e solo concettuale, la validazione pairwise \`e quadraticamente costosa, le soglie sono scelte manualmente e le RFD non devono essere lette come leggi causali. Anche quando una regola ha lift elevato, essa dice soltanto che coppie simili sugli antecedenti tendono a essere pi\`u coerenti sul conseguente rispetto a una baseline randomizzata. Non stabilisce che gli antecedenti causino il conseguente. In sintesi, il progetto mostra che l'approccio \`e adatto a un'analisi esplorativa rigorosa e leggibile della coerenza dei dati, ma non supporta conclusioni forti sulla dinamica causale della qualit\`a dell'aria.
-
-Un possibile sviluppo futuro sarebbe estendere l'analisi a un numero maggiore di stazioni o introdurre strategie di campionamento e pruning pi\`u sofisticate per la scoperta delle RFD. Sarebbe inoltre utile confrontare soglie fissate manualmente con soglie derivate dai quantili empirici delle differenze tra osservazioni. Anche in questi casi, tuttavia, l'obiettivo resterebbe quello di descrivere regolarit\`a approssimate, non di stabilire nessi causali.
+I risultati mostrano cinque regolarit\`a minime orientate verso \texttt{WSPM}.
+Il lift superiore a 1 indica un vantaggio rispetto alla baseline permutata, ma
+il margine \`e moderato e quattro regole hanno supporto molto basso. Non si
+formulano quindi leggi ambientali o affermazioni causali. L'UDT resta
+concettuale; le RFD servono per consistency profiling e continuous profiling.
+Future estensioni dovrebbero verificare la sensibilit\`a a diverse granularit\`a
+temporali e soglie, oppure usare DOMINO quando l'obiettivo sia inferire le
+soglie anzich\'e fornirle come input.
 
 \begin{thebibliography}{9}
-
 \bibitem{uci}
 S. Chen.
 \newblock \textit{Beijing Multi-Site Air Quality} [Dataset].
@@ -318,13 +315,32 @@ S. Chen.
 \bibitem{rfd-survey}
 L. Caruccio, V. Deufemia, and G. Polese.
 \newblock Relaxed Functional Dependencies -- A Survey of Approaches.
-\newblock \textit{IEEE Transactions on Knowledge and Data Engineering}, 28(1):147--165, 2016.
+\newblock \textit{IEEE Transactions on Knowledge and Data Engineering},
+28(1):147--165, 2016.
 
 \bibitem{rfd-mining}
 L. Caruccio, V. Deufemia, and G. Polese.
 \newblock Mining relaxed functional dependencies from data.
 \newblock \textit{Data Mining and Knowledge Discovery}, 34(2):443--477, 2020.
+\newblock DOI: \url{https://doi.org/10.1007/s10618-019-00667-7}
 
+\bibitem{rfd-discussion}
+L. Caruccio, V. Deufemia, and G. Polese.
+\newblock Lattice-based Discovery of Hybrid Relaxed Functional Dependencies
+(Discussion Paper).
+\newblock In \textit{SEBD 2020}, CEUR Workshop Proceedings, Vol. 2646, 2020.
+\newblock \url{https://ceur-ws.org/Vol-2646/24-paper.pdf}
+
+\bibitem{lecture3}
+KDIID course.
+\newblock \textit{Lecture 3: Relaxed Functional Dependencies}.
+\newblock Course material, slides 29--41.
+
+\bibitem{dime-software}
+DASTLab.
+\newblock \textit{DiMe Software Repository}.
+\newblock Official JAR, datasets, and replication README.
+\newblock \url{https://dastlab.github.io/dime/}
 \end{thebibliography}
 
 \end{document}

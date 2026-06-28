@@ -1,0 +1,2 @@
+algorithm,g3_mode,extent_threshold,threshold_set,projection_rows,projection_attributes,lattice_levels_visited,candidates_validated,discovered_rfds,minimal_rfds,positive_support_rfds
+DiMε,greedy,0.1,medium,1676,8,8,960,5,5,5

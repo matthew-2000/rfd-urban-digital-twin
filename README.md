@@ -1,6 +1,9 @@
 # RFD Urban Digital Twin Exam
 
-Small Python exam project on Relaxed Functional Dependencies (RFDs) for urban air-quality consistency profiling in a simplified Urban Digital Twin (UDT).
+Small Python exam project on Relaxed Functional Dependencies (RFDs) for
+urban air-quality consistency profiling in a simplified Urban Digital Twin
+(UDT). The main discovery method is the full DiMε algorithm taught in the
+KDIID course and described by Caruccio, Deufemia, and Polese (2020).
 
 ## Dataset
 
@@ -20,8 +23,11 @@ Dataset scope:
   intentionally scoped to the selected pair;
 - the definitive experiment uses the complete common temporal coverage of both files;
 - the final cleaned dataset contains `66619` rows;
-- full cleaned data are used for preprocessing and profiling, while pairwise RFD
-  validation remains tractable through the deterministic balanced sample.
+- full cleaned data are used for preprocessing and profiling;
+- every cleaned row contributes to the DiMε analytical relation, which contains
+  weekly medians by station and time slot;
+- the legacy deterministic sample is used only for supplementary manual-rule
+  comparisons.
 
 ## Structure
 
@@ -56,9 +62,39 @@ Run the complete pipeline and overwrite the executed notebook and all generated 
 Main generated dataset:
 
 - `data/processed/udt_rfd_dataset.csv`
-- `data/processed/udt_rfd_sample.csv`
+- `data/processed/udt_dime_projection.csv`
+- `data/processed/udt_rfd_sample.csv` (supplementary comparison only)
 
-RFD experiments use deterministic balanced sample of `1500` rows (`750` per station) because pairwise validation is quadratic.
+## Course algorithm: DiMε
+
+The implementation in `src/algorithms/dime.py` follows the course lecture,
+the 2020 paper, and the authors' reference implementation:
+
+- absolute-distance matrices for numeric attributes and equality distance for
+  categorical attributes;
+- similar patterns and stripped similar pattern subsets;
+- complete level-wise attribute lattice with no LHS-size cap;
+- TANE-style `C+` candidate generation;
+- exact refinement/cardinality validation when `g3 = 0`;
+- hybrid validation with the `g3` tuple-removal error;
+- official greedy vertex-cover approximation by default, with the reference
+  exact vertex-cover decision mode available for reproducibility;
+- DiMε bounds, key pruning, candidate pruning, and minimal-RFD output.
+
+Discovery uses all eight projected attributes:
+`station`, `time_slot`, `PM2.5`, `PM10`, `NO2`, `O3`, `TEMP`, and `WSPM`.
+The default extent threshold is `g3 <= 0.10`; similarity thresholds are the
+domain-specific `medium` configuration in `src/rfd.py`.
+
+The current reproducible run contains `1676` projected rows, visits all eight
+lattice levels, validates `960` candidates, and discovers `5` minimal RFDs.
+
+The implementation was also checked on the `iris.csv` shipped with the
+authors' official DiMε distribution (`maxthr=1`, `maxcovthr=1`, greedy mode).
+The official JAR and this Python implementation return the same five
+dependencies, with no missing or extra rule. The comparison is exported in
+`results/dime_iris_validation.csv`; the JAR's verbatim rule list is retained in
+`results/dime_iris_official_output.txt`.
 
 ## RFD metrics
 
@@ -75,11 +111,13 @@ RFD confidence measures how often similar tuples on LHS stay similar on RHS. Lif
 
 Additional robustness checks:
 
-- 30 balanced bootstrap resamples with mean, standard deviation, and 95% intervals for support, confidence, and lift;
+- 30 balanced bootstrap resamples of the top DiMε RFDs with mean, standard
+  deviation, and 95% intervals for support, confidence, and lift;
 - train/test temporal validation: `2013-03-01`–`2016-02-29` as train and
   `2016-03-01`–`2017-02-28` as test;
 - monthly continuous profiling with abrupt-change flags;
-- raw versus quantile-binned low/medium/high RFD variants;
+- raw versus quantile-binned low/medium/high variants as a supplementary
+  manual-rule comparison;
 - strongest violation-pair export and aggregation by station, month, and time slot.
 
 ## Generated outputs
@@ -97,7 +135,13 @@ Results:
 - `results/profile_correlation_matrix.csv`
 - `results/rfd_candidate_results.csv`
 - `results/rfd_candidate_metrics.csv`
-- `results/rfd_discovered_top10.csv`
+- `results/dime_discovered_all.csv`
+- `results/dime_discovered_minimal.csv`
+- `results/dime_discovered_metrics.csv`
+- `results/dime_discovered_top.csv`
+- `results/dime_discovery_summary.csv`
+- `results/dime_top_violating_pairs.csv`
+- `results/rfd_discovered_top10.csv` (compatibility export)
 - `results/rfd_threshold_comparison.csv`
 - `results/rfd_station_comparison.csv`
 - `results/rfd_bootstrap_summary.csv`
@@ -125,15 +169,13 @@ Figures:
 
 - [x] preprocessing pipeline and cleaned dataset
 - [x] profiling exports
-- [x] RFD validation and discovery
-- [x] threshold and station experiments
+- [x] full DiMε discovery and minimality pruning
+- [x] threshold and station supplementary experiments
 - [x] baseline/lift validation
 - [x] bootstrap, temporal validation, and monthly continuous profiling
 - [x] raw versus binned RFD comparison
 - [x] strongest violation aggregation
 - [x] notebook final run
-
-If no discovered rule satisfies `support >= 0.01` and `confidence >= 0.85`, `results/rfd_discovered_top10.csv` is exported with headers only and discussed in notebook as negative result.
 
 ## Scope limits
 
@@ -142,4 +184,8 @@ If no discovered rule satisfies `support >= 0.01` and `confidence >= 0.85`, `res
 - no deep learning
 - no streaming backend
 - no causal inference
-- no full DiMε implementation
+
+The UDT is conceptual rather than a 3D operational platform. RFDs are
+approximate regularities, not causal laws. Violations may represent anomalies,
+data-quality issues, or unobserved events. Pairwise discovery remains
+quadratic, which motivates the documented analytical relation.

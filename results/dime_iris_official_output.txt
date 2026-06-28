@@ -1,0 +1,11 @@
+Official DiMε distribution: https://dastlab.github.io/dime/
+Command: java -jar DIME.jar "iris.csv" "1" "1" "true"
+
+****** DISCOVERED RFDs *******
+ -> TEST.B@1.0
+TEST.E@1.0, -> TEST.D@1.0
+TEST.E@1.0, -> TEST.A@1.0
+TEST.E@1.0, -> TEST.C@1.0
+TEST.A@1.0,TEST.C@1.0, -> TEST.D@1.0
+
+DiMe discovered 5 RFDs.

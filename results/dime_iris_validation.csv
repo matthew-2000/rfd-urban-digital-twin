@@ -1,0 +1,6 @@
+official_rule,python_rule,python_g3_error,exact_rule_match
+ -> B, -> B,0.013333333333333308,True
+E -> D,E -> D,0.0,True
+E -> A,E -> A,0.026666666666666616,True
+E -> C,E -> C,0.020000000000000018,True
+"A, C -> D","A, C -> D",0.09333333333333334,True

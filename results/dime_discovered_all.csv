@@ -1,0 +1,6 @@
+lhs,rhs,rule_label,lhs_length,g3_error,extent_threshold,level,exact_comparison,discovery_kind,is_minimal,g3_mode
+time_slot,WSPM,time_slot -> WSPM,1,0.04653937947494036,0.1,2,False,candidate,True,greedy
+"PM2.5, PM10, NO2, O3, TEMP",WSPM,"PM2.5, PM10, NO2, O3, TEMP -> WSPM",5,0.07398568019093078,0.1,6,False,candidate,True,greedy
+"station, PM10, NO2, O3, TEMP",WSPM,"station, PM10, NO2, O3, TEMP -> WSPM",5,0.09188544152744631,0.1,6,False,candidate,True,greedy
+"station, PM2.5, NO2, O3, TEMP",WSPM,"station, PM2.5, NO2, O3, TEMP -> WSPM",5,0.08651551312649165,0.1,6,False,candidate,True,greedy
+"station, PM2.5, PM10, O3, TEMP",WSPM,"station, PM2.5, PM10, O3, TEMP -> WSPM",5,0.081145584725537,0.1,6,False,candidate,True,greedy

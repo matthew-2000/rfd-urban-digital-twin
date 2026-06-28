@@ -1,148 +1,212 @@
 rule_label,station,month,time_slot,violation_pairs,mean_rhs_abs_diff,max_rhs_abs_diff,share_within_rule
-"station, PM2.5, NO2 -> PM10",Changping,2014-03,evening,67,167.56716417910448,179.0,0.335
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-03,afternoon,9,187.0,209.0,0.045
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-12,afternoon,7,219.14285714285714,251.0,0.035
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-05,morning,5,161.8,166.0,0.025
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-08,afternoon,5,160.8,174.0,0.025
-"station, PM2.5, NO2 -> PM10",Changping,2014-03,morning,4,181.5,191.0,0.02
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2015-04,night,4,179.5,199.0,0.02
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-04,evening,4,175.25,182.0,0.02
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2015-04,evening,4,158.75,163.0,0.02
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2015-03,morning,3,216.33333333333334,237.0,0.015
-"station, PM2.5, NO2 -> PM10",Changping,2014-01,night,3,170.0,175.0,0.015
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-06,evening,3,165.0,170.0,0.015
-"station, PM2.5, NO2 -> PM10",Changping,2015-05,night,2,496.0,499.0,0.01
-"station, PM2.5, NO2 -> PM10",Changping,2013-05,evening,2,192.5,225.0,0.01
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2015-07,morning,2,189.0,222.0,0.01
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-10,evening,2,180.5,188.0,0.01
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2015-02,afternoon,2,180.5,202.0,0.01
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-07,morning,2,176.0,196.0,0.01
-"station, PM2.5, NO2 -> PM10",Changping,2013-09,afternoon,2,176.0,193.0,0.01
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-08,morning,2,174.0,188.0,0.01
-"station, PM2.5, NO2 -> PM10",Changping,2013-06,afternoon,2,172.0,180.0,0.01
-"station, PM2.5, NO2 -> PM10",Changping,2013-07,night,2,170.5,181.0,0.01
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-02,evening,2,170.0,172.0,0.01
-"station, PM2.5, NO2 -> PM10",Changping,2013-12,morning,2,169.5,170.0,0.01
-"station, PM2.5, NO2 -> PM10",Changping,2013-07,morning,2,166.0,174.0,0.01
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2016-04,evening,2,160.5,167.0,0.01
-"station, PM2.5, NO2 -> PM10",Changping,2013-08,evening,2,159.5,162.0,0.01
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2016-04,night,2,155.5,157.0,0.01
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-03,evening,2,154.0,154.0,0.01
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2016-06,evening,2,154.0,154.0,0.01
-"station, PM2.5, NO2 -> PM10",Changping,2015-05,morning,1,491.0,491.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2013-10,night,1,262.0,262.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-11,evening,1,226.0,226.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-07,afternoon,1,213.0,213.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2016-02,night,1,210.0,210.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-08,evening,1,198.0,198.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-02,morning,1,197.0,197.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2015-04,morning,1,197.0,197.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-06,night,1,196.0,196.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-01,night,1,190.0,190.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2015-03,night,1,190.0,190.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-04,morning,1,189.0,189.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-08,night,1,184.0,184.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2015-01,morning,1,184.0,184.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2013-03,evening,1,180.0,180.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-03,morning,1,178.0,178.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-01,morning,1,178.0,178.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-07,morning,1,177.0,177.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2015-06,night,1,176.0,176.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-11,morning,1,173.0,173.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-08,afternoon,1,173.0,173.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2013-11,morning,1,171.0,171.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2014-01,afternoon,1,169.0,169.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-06,morning,1,168.0,168.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2013-10,evening,1,167.0,167.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-09,afternoon,1,166.0,166.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2015-02,night,1,165.0,165.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2015-11,morning,1,165.0,165.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-07,evening,1,164.0,164.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2013-04,evening,1,164.0,164.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2014-01,morning,1,163.0,163.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2015-07,evening,1,162.0,162.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2013-07,evening,1,162.0,162.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2015-11,night,1,162.0,162.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-01,afternoon,1,161.0,161.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2015-06,evening,1,161.0,161.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2013-05,afternoon,1,160.0,160.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2015-01,afternoon,1,160.0,160.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2013-04,night,1,159.0,159.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2015-04,afternoon,1,158.0,158.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2014-05,morning,1,157.0,157.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2013-11,afternoon,1,157.0,157.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2013-11,night,1,156.0,156.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2015-04,afternoon,1,155.0,155.0,0.005
-"station, PM2.5, NO2 -> PM10",Changping,2013-06,night,1,155.0,155.0,0.005
-"station, PM2.5, NO2 -> PM10",Aotizhongxin,2013-06,afternoon,1,154.0,154.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-12,afternoon,27,228.85185185185185,256.0,0.135
-"station, time_slot, PM2.5 -> PM10",Changping,2014-03,evening,23,165.47826086956522,179.0,0.115
-"station, time_slot, PM2.5 -> PM10",Changping,2014-03,morning,11,192.27272727272728,222.0,0.055
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2014-08,night,11,167.9090909090909,196.0,0.055
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-04,morning,10,171.7,184.0,0.05
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2014-09,evening,8,211.75,251.0,0.04
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2015-04,night,7,177.57142857142858,194.0,0.035
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-03,afternoon,6,202.5,222.0,0.03
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2015-03,morning,5,224.0,239.0,0.025
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2014-02,evening,5,196.0,244.0,0.025
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-05,morning,5,161.2,165.0,0.025
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2014-06,evening,4,183.0,237.0,0.02
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2014-04,evening,4,170.75,182.0,0.02
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2016-03,afternoon,3,207.0,215.0,0.015
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2014-07,evening,3,191.0,249.0,0.015
-"station, time_slot, PM2.5 -> PM10",Changping,2015-05,night,2,496.0,499.0,0.01
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2015-03,night,2,208.5,240.0,0.01
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2014-03,night,2,203.0,206.0,0.01
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-11,afternoon,2,202.0,217.0,0.01
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-09,night,2,185.0,185.0,0.01
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2014-06,night,2,174.0,190.0,0.01
-"station, time_slot, PM2.5 -> PM10",Changping,2013-05,morning,2,169.5,172.0,0.01
-"station, time_slot, PM2.5 -> PM10",Changping,2015-11,morning,2,161.0,165.0,0.01
-"station, time_slot, PM2.5 -> PM10",Changping,2013-08,evening,2,159.5,162.0,0.01
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2015-07,evening,2,158.5,162.0,0.01
-"station, time_slot, PM2.5 -> PM10",Changping,2013-05,evening,2,157.5,160.0,0.01
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2016-06,evening,2,156.0,156.0,0.01
-"station, time_slot, PM2.5 -> PM10",Changping,2015-01,night,1,514.0,514.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2016-05,night,1,498.0,498.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2014-12,night,1,478.0,478.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-10,afternoon,1,234.0,234.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-09,morning,1,228.0,228.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2013-07,morning,1,226.0,226.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2015-06,afternoon,1,222.0,222.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-05,afternoon,1,215.0,215.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2013-09,morning,1,215.0,215.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2014-06,afternoon,1,210.0,210.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-10,evening,1,206.0,206.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2015-02,afternoon,1,202.0,202.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2014-02,morning,1,201.0,201.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-08,morning,1,196.0,196.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2014-01,morning,1,191.0,191.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2014-01,night,1,189.0,189.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2015-01,morning,1,184.0,184.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2013-03,evening,1,180.0,180.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2013-05,afternoon,1,180.0,180.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2015-04,morning,1,180.0,180.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-09,afternoon,1,177.0,177.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2015-03,evening,1,177.0,177.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-08,afternoon,1,174.0,174.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2014-02,night,1,174.0,174.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-04,evening,1,170.0,170.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-07,morning,1,170.0,170.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-07,afternoon,1,168.0,168.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2015-11,afternoon,1,167.0,167.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2015-10,evening,1,165.0,165.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2013-06,morning,1,165.0,165.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2013-04,evening,1,164.0,164.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2013-07,evening,1,162.0,162.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2015-06,evening,1,161.0,161.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2015-01,afternoon,1,160.0,160.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-05,night,1,159.0,159.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2013-06,morning,1,158.0,158.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2014-08,afternoon,1,158.0,158.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2016-04,morning,1,158.0,158.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2015-04,evening,1,156.0,156.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2015-08,evening,1,156.0,156.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2013-12,afternoon,1,156.0,156.0,0.005
-"station, time_slot, PM2.5 -> PM10",Aotizhongxin,2016-04,night,1,155.0,155.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2013-10,evening,1,155.0,155.0,0.005
-"station, time_slot, PM2.5 -> PM10",Changping,2013-10,night,1,155.0,155.0,0.005
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-01,afternoon,11,2.036363636363636,2.9000000000000004,0.05555555555555555
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-12,morning,7,2.028571428571428,2.3499999999999996,0.03535353535353535
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-12,afternoon,7,1.8571428571428572,2.3000000000000003,0.03535353535353535
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-12,afternoon,7,1.5714285714285712,2.3499999999999996,0.03535353535353535
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-12,morning,6,1.4416666666666667,1.8,0.030303030303030304
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2016-02,night,6,1.3333333333333333,1.45,0.030303030303030304
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-02,morning,6,1.2583333333333335,1.4000000000000001,0.030303030303030304
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-11,afternoon,6,1.2166666666666666,1.4999999999999998,0.030303030303030304
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-12,afternoon,5,1.8199999999999998,2.0500000000000003,0.025252525252525252
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2016-02,morning,5,1.08,1.2000000000000002,0.025252525252525252
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-06,evening,4,1.6500000000000001,1.9500000000000002,0.020202020202020204
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-01,afternoon,4,1.2625,1.5,0.020202020202020204
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-04,afternoon,3,1.8500000000000003,2.0,0.015151515151515152
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-04,night,3,1.75,2.05,0.015151515151515152
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-05,afternoon,3,1.4833333333333332,1.5999999999999999,0.015151515151515152
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-06,night,3,1.3999999999999997,1.5999999999999999,0.015151515151515152
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-12,afternoon,3,1.3500000000000003,1.5500000000000003,0.015151515151515152
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-04,afternoon,3,1.25,1.35,0.015151515151515152
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-12,evening,2,2.5500000000000003,2.95,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-09,evening,2,2.1750000000000003,2.6500000000000004,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-07,night,2,2.125,2.95,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-04,afternoon,2,1.925,2.5,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-11,afternoon,2,1.875,2.3000000000000003,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-08,evening,2,1.775,2.45,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-11,evening,2,1.6500000000000001,2.2,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-02,evening,2,1.6500000000000001,1.9000000000000001,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-04,evening,2,1.625,2.2,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-07,evening,2,1.55,1.6,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-08,night,2,1.55,1.6,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-04,afternoon,2,1.5499999999999998,1.95,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-12,night,2,1.5499999999999998,1.9,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-11,night,2,1.4,1.5,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2016-02,afternoon,2,1.3750000000000004,1.4000000000000004,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-02,night,2,1.2750000000000001,1.3000000000000003,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-06,evening,2,1.275,1.3499999999999999,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-02,afternoon,2,1.2249999999999999,1.2999999999999998,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-03,afternoon,2,1.2000000000000002,1.35,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-12,night,2,1.1500000000000001,1.2000000000000002,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-05,afternoon,2,1.15,1.1500000000000001,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-03,afternoon,2,1.1000000000000003,1.1000000000000005,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-01,morning,2,1.1,1.1500000000000001,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-04,evening,2,1.0500000000000003,1.1,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-02,afternoon,2,1.05,1.05,0.010101010101010102
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-09,afternoon,1,3.000000000000001,3.000000000000001,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-01,morning,1,2.8000000000000003,2.8000000000000003,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2016-01,night,1,2.7,2.7,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-08,night,1,2.6500000000000004,2.6500000000000004,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-08,night,1,2.6,2.6,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-08,morning,1,2.25,2.25,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-11,afternoon,1,2.25,2.25,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-11,night,1,2.2499999999999996,2.2499999999999996,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-02,morning,1,2.1,2.1,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-12,morning,1,1.75,1.75,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-01,afternoon,1,1.65,1.65,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-11,afternoon,1,1.6,1.6,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-12,night,1,1.6,1.6,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-08,afternoon,1,1.6,1.6,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-08,evening,1,1.5999999999999999,1.5999999999999999,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-05,evening,1,1.5999999999999999,1.5999999999999999,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-10,afternoon,1,1.5999999999999999,1.5999999999999999,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-04,afternoon,1,1.5499999999999998,1.5499999999999998,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-03,morning,1,1.5000000000000002,1.5000000000000002,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-05,evening,1,1.5,1.5,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-10,night,1,1.4999999999999998,1.4999999999999998,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-04,evening,1,1.4500000000000002,1.4500000000000002,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-05,afternoon,1,1.4499999999999997,1.4499999999999997,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-04,evening,1,1.4000000000000001,1.4000000000000001,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2016-03,night,1,1.4000000000000001,1.4000000000000001,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-06,evening,1,1.4000000000000001,1.4000000000000001,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-06,night,1,1.35,1.35,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-03,morning,1,1.35,1.35,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-05,night,1,1.3499999999999999,1.3499999999999999,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-05,afternoon,1,1.2999999999999998,1.2999999999999998,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-05,afternoon,1,1.25,1.25,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-09,afternoon,1,1.25,1.25,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-05,afternoon,1,1.2499999999999996,1.2499999999999996,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-12,evening,1,1.2000000000000002,1.2000000000000002,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-09,evening,1,1.2000000000000002,1.2000000000000002,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-09,night,1,1.2,1.2,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-03,afternoon,1,1.1500000000000004,1.1500000000000004,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-01,evening,1,1.1500000000000004,1.1500000000000004,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-05,afternoon,1,1.15,1.15,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-08,evening,1,1.1,1.1,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-06,afternoon,1,1.1,1.1,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-11,afternoon,1,1.1,1.1,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-09,night,1,1.1,1.1,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-10,evening,1,1.0999999999999999,1.0999999999999999,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-08,afternoon,1,1.0999999999999999,1.0999999999999999,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-02,evening,1,1.0500000000000003,1.0500000000000003,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-03,evening,1,1.0500000000000003,1.0500000000000003,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2016-05,afternoon,1,1.0500000000000003,1.0500000000000003,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-07,night,1,1.0500000000000003,1.0500000000000003,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-10,night,1,1.05,1.05,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2016-02,evening,1,1.0499999999999998,1.0499999999999998,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-11,evening,1,1.0499999999999998,1.0499999999999998,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-03,night,1,1.0499999999999998,1.0499999999999998,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-04,night,1,1.0499999999999998,1.0499999999999998,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-02,night,1,1.0000000000000002,1.0000000000000002,0.005050505050505051
+"PM2.5, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-02,evening,1,1.0000000000000002,1.0000000000000002,0.005050505050505051
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-01,afternoon,9,2.216666666666667,3.4000000000000004,0.045
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-12,morning,7,1.9857142857142855,2.3499999999999996,0.035
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-12,morning,7,1.385714285714286,1.55,0.035
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-12,afternoon,6,1.925,2.3000000000000003,0.03
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-12,afternoon,6,1.5499999999999998,2.3499999999999996,0.03
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-11,afternoon,6,1.3499999999999999,1.6999999999999997,0.03
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-09,afternoon,4,2.9875000000000007,3.2000000000000006,0.02
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-07,night,4,2.1125,3.05,0.02
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-09,night,4,1.8499999999999999,3.0,0.02
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-05,morning,4,1.6124999999999998,1.7999999999999998,0.02
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-08,night,3,2.8666666666666667,3.150000000000001,0.015
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-08,evening,3,2.2833333333333337,3.3500000000000005,0.015
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-09,afternoon,3,2.0500000000000003,2.5500000000000007,0.015
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-04,afternoon,3,1.6333333333333335,1.9000000000000001,0.015
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-04,night,3,1.5999999999999999,2.05,0.015
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-03,afternoon,3,1.5833333333333333,2.05,0.015
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-05,afternoon,3,1.5833333333333333,1.5999999999999999,0.015
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-05,afternoon,3,1.5166666666666666,1.7499999999999998,0.015
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-08,night,3,1.4333333333333336,1.6,0.015
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-05,afternoon,3,1.3833333333333335,1.7,0.015
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-05,night,2,2.525,2.65,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-04,afternoon,2,2.2750000000000004,2.5,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-03,afternoon,2,2.25,2.65,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-09,evening,2,2.1750000000000003,2.6500000000000004,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-02,evening,2,2.05,2.25,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-06,evening,2,1.8250000000000002,1.9500000000000002,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-03,night,2,1.7000000000000002,2.2,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-04,afternoon,2,1.4249999999999998,1.7,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-06,night,2,1.4000000000000001,1.4500000000000002,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2016-02,afternoon,2,1.3750000000000004,1.4000000000000004,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-04,afternoon,2,1.3250000000000002,1.35,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-02,night,2,1.2750000000000001,1.3000000000000003,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-06,evening,2,1.275,1.3499999999999999,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-02,morning,2,1.2500000000000002,1.3000000000000003,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-06,evening,2,1.25,1.25,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-04,night,2,1.225,1.3000000000000003,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-02,afternoon,2,1.2249999999999999,1.2999999999999998,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-10,afternoon,2,1.2000000000000002,1.3,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2016-01,afternoon,2,1.2000000000000002,1.3,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-09,evening,2,1.1750000000000003,1.2500000000000004,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-05,afternoon,2,1.175,1.25,0.01
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-02,night,1,3.25,3.25,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-04,night,1,3.25,3.25,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-07,night,1,3.2000000000000006,3.2000000000000006,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-07,morning,1,3.1000000000000005,3.1000000000000005,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-06,night,1,2.900000000000001,2.900000000000001,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-01,morning,1,2.8000000000000003,2.8000000000000003,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-06,morning,1,2.7000000000000006,2.7000000000000006,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-08,night,1,2.6500000000000004,2.6500000000000004,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-10,afternoon,1,2.5,2.5,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-03,morning,1,2.45,2.45,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-08,evening,1,2.45,2.45,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-04,afternoon,1,2.4,2.4,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-11,afternoon,1,2.25,2.25,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-11,night,1,2.2499999999999996,2.2499999999999996,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-02,morning,1,2.1,2.1,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-02,evening,1,1.9000000000000001,1.9000000000000001,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-05,evening,1,1.9,1.9,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-04,evening,1,1.8499999999999996,1.8499999999999996,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2016-04,afternoon,1,1.7500000000000004,1.7500000000000004,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-05,night,1,1.7000000000000002,1.7000000000000002,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2016-03,afternoon,1,1.7000000000000002,1.7000000000000002,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-11,evening,1,1.6500000000000001,1.6500000000000001,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-05,afternoon,1,1.65,1.65,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-07,afternoon,1,1.65,1.65,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-09,night,1,1.65,1.65,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-12,night,1,1.6,1.6,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-06,night,1,1.5999999999999999,1.5999999999999999,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-03,morning,1,1.5000000000000002,1.5000000000000002,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-05,evening,1,1.5,1.5,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-01,afternoon,1,1.5,1.5,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-03,night,1,1.5,1.5,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-02,morning,1,1.4500000000000002,1.4500000000000002,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-07,evening,1,1.45,1.45,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-05,afternoon,1,1.4499999999999997,1.4499999999999997,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-03,evening,1,1.4000000000000004,1.4000000000000004,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-04,evening,1,1.4000000000000001,1.4000000000000001,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-03,afternoon,1,1.35,1.35,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-03,morning,1,1.35,1.35,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-11,night,1,1.3,1.3,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-03,evening,1,1.3,1.3,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-07,night,1,1.3,1.3,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-04,evening,1,1.3,1.3,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-11,morning,1,1.2999999999999998,1.2999999999999998,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-02,evening,1,1.2500000000000004,1.2500000000000004,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-04,evening,1,1.25,1.25,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-09,afternoon,1,1.25,1.25,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-03,morning,1,1.25,1.25,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2017-01,night,1,1.2499999999999998,1.2499999999999998,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-03,afternoon,1,1.2000000000000002,1.2000000000000002,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-07,evening,1,1.2000000000000002,1.2000000000000002,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2014-09,evening,1,1.2000000000000002,1.2000000000000002,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2014-06,night,1,1.2,1.2,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-09,night,1,1.2,1.2,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2016-02,night,1,1.2,1.2,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2016-05,evening,1,1.2,1.2,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-06,afternoon,1,1.1999999999999997,1.1999999999999997,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-03,afternoon,1,1.1500000000000004,1.1500000000000004,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2016-01,evening,1,1.1500000000000004,1.1500000000000004,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-03,afternoon,1,1.1500000000000001,1.1500000000000001,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-04,afternoon,1,1.15,1.15,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-07,afternoon,1,1.15,1.15,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-05,afternoon,1,1.1499999999999997,1.1499999999999997,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-04,morning,1,1.1499999999999997,1.1499999999999997,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-02,morning,1,1.1,1.1,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-08,evening,1,1.1,1.1,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-10,night,1,1.1,1.1,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2013-11,evening,1,1.1,1.1,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Aotizhongxin,2015-06,afternoon,1,1.1,1.1,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-09,night,1,1.1,1.1,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2013-12,night,1,1.1,1.1,0.005
+"station, PM10, NO2, O3, TEMP -> WSPM",Changping,2015-03,afternoon,1,1.1,1.1,0.005

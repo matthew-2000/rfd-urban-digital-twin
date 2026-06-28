@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from itertools import combinations
 from typing import Iterable
 
 import numpy as np
@@ -341,60 +340,3 @@ def validate_rfd(
         "lift": lift,
         "violation_examples": violation_examples,
     }
-
-
-def discover_rfds(
-    df: pd.DataFrame,
-    lhs_attributes: Iterable[str],
-    rhs_attributes: Iterable[str],
-    thresholds: dict[str, object],
-    min_support: float = 0.01,
-    min_confidence: float = 0.85,
-    max_lhs_size: int = 3,
-    top_k: int = 10,
-    pair_cache: PairIndexCache | None = None,
-    similarity_cache: dict[str, np.ndarray] | None = None,
-) -> list[dict[str, object]]:
-    """Run lightweight RFD discovery over small LHS combinations."""
-
-    lhs_attributes = list(lhs_attributes)
-    rhs_attributes = list(rhs_attributes)
-    if pair_cache is None:
-        pair_cache = build_pair_index_cache(df)
-
-    required_attrs = set(lhs_attributes) | set(rhs_attributes)
-    if similarity_cache is None:
-        similarity_cache = build_similarity_cache(df, thresholds, required_attrs, pair_cache)
-
-    discovered: list[dict[str, object]] = []
-    for lhs_size in range(1, max_lhs_size + 1):
-        for lhs in combinations(lhs_attributes, lhs_size):
-            lhs_set = set(lhs)
-            for rhs in rhs_attributes:
-                if rhs in lhs_set:
-                    continue
-                result = validate_rfd(
-                    df=df,
-                    lhs=list(lhs),
-                    rhs=rhs,
-                    thresholds=thresholds,
-                    max_violations=0,
-                    pair_cache=pair_cache,
-                    similarity_cache=similarity_cache,
-                )
-                confidence = result["confidence"]
-                if confidence is None:
-                    continue
-                if result["support"] < min_support or confidence < min_confidence:
-                    continue
-                discovered.append(result)
-
-    discovered.sort(
-        key=lambda item: (
-            -(item["confidence"] or 0.0),
-            -item["support"],
-            len(item["lhs"]),
-            rule_to_label(item["lhs"], item["rhs"]),
-        )
-    )
-    return discovered[:top_k]

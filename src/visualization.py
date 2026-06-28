@@ -203,6 +203,10 @@ def plot_violations_by_month_station(summary_df: pd.DataFrame, output_path: Path
     ax.set_title("Strongest RFD Violations by Month and Station")
     ax.set_xlabel("Month")
     ax.set_ylabel("Violation pairs")
+    for index, label in enumerate(ax.get_xticklabels()):
+        label.set_visible(index % 6 == 0)
+        label.set_rotation(35)
+        label.set_horizontalalignment("right")
     fig.tight_layout()
     fig.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
