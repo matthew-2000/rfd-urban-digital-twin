@@ -1,0 +1,2 @@
+lhs,rhs,g3,support,confidence,lift,antecedent_pairs,valid_pairs,violation_rate,config_name,rule_label,lhs_length,extent_threshold,level,exact_comparison,discovery_kind,is_minimal,g3_mode,total_pairs,violations,baseline_confidence,baseline_confidence_std
+,WSPM,0.023866348448687402,1.0,0.8905987959961529,1.0000000000000002,1403650,1250089,0.10940120400384712,loose_150x, -> WSPM,0,0.1,1,False,candidate,True,greedy,1403650,153561,0.8905987959961527,2.220446049250313e-16

@@ -118,9 +118,11 @@ data/
   raw/
   processed/
 notebooks/
+scripts/
 src/
 results/
 figures/
+outputs/
 ```
 
 Core code files:
@@ -132,6 +134,7 @@ Core code files:
 - `src/experiments.py`
 - `src/visualization.py`
 - `notebooks/01_rfd_udt_analysis.ipynb`
+- `scripts/sensitivity_thresholds.py` (isolated threshold sensitivity analysis)
 
 ## Required outputs
 
@@ -183,6 +186,12 @@ Figures:
 - `figures/rfd_lift_vs_baseline.png`
 - `figures/rfd_confidence_over_time.png`
 - `figures/rfd_violations_by_month_station.png`
+
+Sensitivity analysis outputs (kept separate from the main pipeline):
+
+- `outputs/sensitivity/sensitivity_summary.csv`
+- `outputs/sensitivity/sensitivity_summary.md`
+- `outputs/sensitivity/rfds_<config_name>.csv`
 
 Figure readability:
 
