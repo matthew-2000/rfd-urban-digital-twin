@@ -2,3 +2,10 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .venv/
+.DS_Store
+backups/
+tmp/
+output/
+pkcs11.txt
+presentation/*.pdf
+presentation/*.inspect.ndjson

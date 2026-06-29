@@ -88,6 +88,32 @@ domain-specific `medium` configuration in `src/rfd.py`.
 
 The current reproducible run contains `1676` projected rows, visits all eight
 lattice levels, validates `960` candidates, and discovers `5` minimal RFDs.
+The main run remains the domain-specific `medium` threshold configuration.
+
+## Threshold sensitivity
+
+Similarity thresholds are part of the DiMε input, so the project keeps the
+`medium` run as the primary result and uses a separate sensitivity analysis as
+a robustness check rather than as an alternative main experiment.
+
+The isolated sensitivity study in `outputs/sensitivity/` compares:
+
+- three global settings: `strict_075x`, `medium`, `loose_150x`;
+- three WSPM-only variants: `wspm_strict_05`, `wspm_loose_15`,
+  `wspm_loose_20`;
+- the same greedy validation with `g3 <= 0.10` used by the main run.
+
+Interpretation is intentionally conservative:
+
+- `medium` yields a compact set of `5` minimal RFDs, all with RHS `WSPM`;
+- `strict_075x` expands the result to `19` RFDs and `6` distinct RHS, showing
+  that WSPM dominance is threshold-dependent rather than absolute;
+- looser settings collapse to trivial rules such as `∅ -> WSPM`, which have
+  support `1` and lift `1` and are therefore not informative.
+
+For this reason, the report and slides present sensitivity analysis as a
+methodological robustness check that qualifies interpretation without changing
+the main `medium` results.
 
 The implementation was also checked on the `iris.csv` shipped with the
 authors' official DiMε distribution (`maxthr=1`, `maxcovthr=1`, greedy mode).
@@ -119,6 +145,8 @@ Additional robustness checks:
 - raw versus quantile-binned low/medium/high variants as a supplementary
   manual-rule comparison;
 - strongest violation-pair export and aggregation by station, month, and time slot.
+- threshold sensitivity kept separate from the main pipeline outputs and used
+  only to qualify the interpretation of the `medium` run.
 
 ## Generated outputs
 

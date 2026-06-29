@@ -193,6 +193,15 @@ Sensitivity analysis outputs (kept separate from the main pipeline):
 - `outputs/sensitivity/sensitivity_summary.md`
 - `outputs/sensitivity/rfds_<config_name>.csv`
 
+Sensitivity-analysis interpretation policy:
+
+- keep `medium` as the main DiMε run for report and slides;
+- use sensitivity analysis only as a methodological robustness check on
+  similarity thresholds;
+- do not replace the main experiment with `strict_075x` or any other variant;
+- use threshold sensitivity to qualify the interpretation of RHS dominance,
+  especially for `WSPM`, not to claim an optimal threshold.
+
 Figure readability:
 
 - the monthly violation chart keeps every monthly bar but labels every sixth

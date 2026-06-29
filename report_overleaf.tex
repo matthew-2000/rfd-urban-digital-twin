@@ -208,6 +208,14 @@ Attributo & Tipo di confronto & Soglia \\
 
 Le soglie sono scelte come tolleranze interpretative. Per esempio, due profili con \PMdieci{} che differisce di meno di 15 unità vengono trattati come simili rispetto a quell'attributo. La soglia su \Wspm{} è più stretta perché la velocità del vento ha scala numerica diversa e variazioni minori possono essere già significative.
 
+\subsection{Sensitivity analysis sulle soglie}
+
+Le RFD dipendono dalle soglie con cui viene definita la similarità tra valori. Per verificare quanto la composizione delle regole scoperte sia stabile rispetto a questa scelta, viene eseguita una sensitivity analysis mantenendo invariati la relazione analitica, l'algoritmo \Dime, la modalità greedy e il vincolo $g_3 \leq 0.10$.
+
+Il confronto include tre configurazioni globali: \texttt{strict\_075x}, che moltiplica per 0.75 tutte le soglie numeriche della configurazione principale; \texttt{medium}, usata come run principale; e \texttt{loose\_150x}, che moltiplica le soglie per 1.5. Sono inoltre valutate tre configurazioni mirate, \texttt{wspm\_strict\_05}, \texttt{wspm\_loose\_15} e \texttt{wspm\_loose\_20}, nelle quali cambia soltanto la soglia di \Wspm{} rispettivamente a 0.5, 1.5 e 2.0, mentre le altre soglie restano quelle di \texttt{medium}.
+
+L'obiettivo non è cercare una soglia ottima né sostituire il run principale, ma controllare la stabilità qualitativa del numero di RFD, degli attributi che compaiono come RHS e della dominanza di \Wspm. Questo controllo limita il rischio di interpretare come proprietà assoluta del dataset un risultato che può dipendere dalla parametrizzazione della similarità.
+
 \subsection{Errore g3}
 
 La soglia di estensione è fissata a $g_3 \leq 0.10$. Il valore $g_3$ misura la quota minima di tuple che dovrebbero essere rimosse per rendere valida la dipendenza rispetto alle soglie definite. In altre parole, non conta semplicemente quante coppie violano la regola, ma esprime un errore a livello di tuple.
@@ -244,7 +252,7 @@ Sono inoltre applicate tre analisi di robustezza. La prima è il bootstrap, usat
 
 \subsection{RFD scoperte}
 
-\Dime{} visita gli 8 livelli del lattice degli attributi, valuta 960 candidati e restituisce 5 RFD minime con supporto positivo. Tutte le regole scoperte hanno come lato destro \Wspm. Questo risultato suggerisce che, nella relazione analitica costruita, la velocità del vento è l'attributo che emerge più chiaramente come variabile coerente rispetto a combinazioni di stazione, fascia oraria, inquinanti e temperatura.
+Nel run principale \texttt{medium}, \Dime{} visita gli 8 livelli del lattice degli attributi, valuta 960 candidati e restituisce 5 RFD minime con supporto positivo. Tutte le regole scoperte in questa configurazione hanno come lato destro \Wspm. La velocità del vento emerge quindi come RHS dominante nel run principale rispetto a combinazioni di stazione, fascia oraria, inquinanti e temperatura; la sensitivity analysis successiva verifica quanto questa osservazione dipenda dalle soglie.
 
 \begin{table}[H]
 \centering
@@ -274,6 +282,40 @@ La prima regola ha la confidenza più alta. Può essere letta nel modo seguente:
 Le prime quattro RFD hanno confidenza elevata ma supporto molto basso. Questo significa che si applicano a porzioni ristrette dello spazio delle tuple: quando trovano coppie molto simili sul lato sinistro, il lato destro è spesso coerente; tuttavia, tali coppie non sono frequenti rispetto al totale delle coppie possibili. Queste regole devono quindi essere interpretate come regolarità locali.
 
 La quinta RFD, \TimeSlot{} $\rightarrow$ \Wspm, è diversa. Ha una confidenza leggermente più bassa, ma un supporto molto più alto. Questo la rende la regola più generale. Il risultato indica che la fascia oraria contiene informazione utile sulla velocità del vento nei profili aggregati. In termini di dominio, questo è plausibile perché il vento può seguire dinamiche giornaliere e condizioni ricorrenti legate al momento della giornata.
+
+\subsection{Sensitivity analysis}
+
+\begin{table}[H]
+\centering
+\caption{Sensitivity analysis delle soglie di similarità}
+\label{tab:sensitivity}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.1cm} r r r >{\raggedright\arraybackslash}X r r@{}}
+\toprule
+Configurazione & RFD & RHS distinti & Quota \Wspm{} & Migliore regola & Conf. & Lift \\
+\midrule
+\texttt{strict\_075x} & 19 & 6 & 0.632 &
+\TimeSlot, \NOdue, \Otre, \Temp{} $\rightarrow$ \Wspm{} & 0.894 & 1.335 \\
+\texttt{medium} & 5 & 1 & 1.000 &
+\Station, \PMdieci, \NOdue, \Otre, \Temp{} $\rightarrow$ \Wspm{} & 0.899 & 1.163 \\
+\texttt{loose\_150x} & 1 & 1 & 1.000 &
+$\emptyset \rightarrow \texttt{WSPM}$ & 0.891 & 1.000 \\
+\texttt{wspm\_strict\_05} & 4 & 1 & 1.000 &
+\Station, \TimeSlot, \PMdieci, \NOdue, \Otre, \Temp{} $\rightarrow$ \Wspm{} & 0.796 & 1.512 \\
+\texttt{wspm\_loose\_15} & 1 & 1 & 1.000 &
+$\emptyset \rightarrow \texttt{WSPM}$ & 0.891 & 1.000 \\
+\texttt{wspm\_loose\_20} & 1 & 1 & 1.000 &
+$\emptyset \rightarrow \texttt{WSPM}$ & 0.953 & 1.000 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La configurazione \texttt{medium} produce 5 RFD, tutte orientate verso \Wspm. Con soglie globalmente più strette, \texttt{strict\_075x} produce invece 19 RFD e 6 RHS distinti: oltre a \Wspm{} emergono \NOdue, \PMdieci, \PMdue, \Station{} e \TimeSlot. \Wspm{} resta comunque il RHS più frequente, con 12 regole su 19 e una quota pari a 0.632. La sua dominanza è quindi evidente, ma non costituisce una proprietà assoluta del dataset indipendente dalle soglie.
+
+Le soglie più larghe producono l'effetto opposto. \texttt{loose\_150x} e le configurazioni con soglia \Wspm{} pari a 1.5 o 2.0 collassano su $\emptyset \rightarrow \texttt{WSPM}$. Questa regola ha supporto 1 e lift 1: descrive soprattutto l'elevata similarità marginale indotta da una soglia permissiva e non aggiunge informazione condizionale utile. Anche la variazione mirata di \Wspm{} mostra che l'identità del RHS rimane stabile, ma il numero e la qualità delle regole cambiano.
+
+La configurazione \texttt{medium} viene quindi mantenuta come impostazione principale perché offre un compromesso metodologico: evita sia l'espansione di molte regole locali osservata con soglie strette, sia il collasso verso regole troppo permissive e poco informative osservato con soglie larghe. La sensitivity analysis non modifica il risultato principale, ma ne delimita correttamente la portata interpretativa.
 
 \subsection{Interpretazione del supporto}
 
@@ -339,6 +381,8 @@ Una violazione non viene automaticamente interpretata come errore. Può indicare
 
 I risultati ottenuti mostrano che la scoperta di RFD può essere utilizzata come strumento di profilazione per trasformare dati ambientali numerici in metadati interpretabili. Il punto centrale del progetto non è la predizione di una variabile ambientale, ma l'estrazione di regolarità approssimate che descrivono quando due profili urbani possono essere considerati coerenti tra loro. In questo senso, le RFD scoperte rappresentano una forma di conoscenza intermedia: non sono semplici statistiche descrittive, ma non sono neppure modelli causali o predittivi. Sono vincoli rilassati, leggibili, associati a soglie esplicite e valutabili nel tempo.
 
+La prevalenza di \Wspm{} come RHS deve essere interpretata all'interno di questa prospettiva. Nel run principale \texttt{medium}, \Wspm{} è il RHS di tutte le 5 RFD; tuttavia, la sensitivity analysis mostra che con soglie più strette emergono anche RHS alternativi. La dominanza di \Wspm{} è quindi un risultato della configurazione principale e resta maggioritaria nel run \texttt{strict\_075x}, ma non è una proprietà naturale o assoluta del dominio. Le soglie sono parte integrante del metadato scoperto e devono accompagnarne l'interpretazione.
+
 Un primo aspetto rilevante riguarda la natura locale delle regole scoperte. Quattro delle cinque RFD hanno supporto molto basso e confidenza elevata. Questo significa che non descrivono un comportamento globale dell'intero dataset, ma regolarità che emergono solo quando i profili sono già molto simili rispetto a più attributi ambientali. Dal punto di vista del progetto, questo risultato è coerente con la complessità del dominio: la qualità dell'aria non è governata da relazioni semplici e uniformi, ma da combinazioni locali di condizioni meteorologiche, temporali e spaziali. Le RFD più specifiche sono quindi utili non perché coprono molte coppie di profili, ma perché identificano zone dello spazio dei dati in cui la coerenza è forte.
 
 La regola con supporto più alto, \TimeSlot{} $\rightarrow$ \Wspm, ha invece un ruolo diverso. Essa descrive una regolarità più generale, meno selettiva, legata al contesto temporale intra-giornaliero. Rispetto alle altre regole, ha confidenza leggermente inferiore ma copertura molto maggiore. Questo contrasto tra regole locali e regola generale è uno dei risultati più interessanti del lavoro: il workflow non restituisce un unico tipo di conoscenza, ma evidenzia regolarità con livelli diversi di specificità. Le regole ad alto supporto sono più adatte a descrivere tendenze generali; le regole a basso supporto ma alta confidenza sono più adatte a individuare casi circoscritti di coerenza forte.
@@ -362,7 +406,7 @@ La discussione dei risultati suggerisce quindi una conclusione metodologica: il 
 
 Il progetto presenta alcune limitazioni. La prima riguarda il dataset: sono state usate solo due stazioni, quindi i risultati non possono essere generalizzati a tutta Pechino o ad altre città senza ulteriori esperimenti. La seconda riguarda la scala temporale: l'aggregazione settimanale rende i profili più robusti, ma perde informazione sulle dinamiche orarie puntuali. La terza riguarda il supporto: quattro RFD hanno supporto molto basso e devono essere interpretate come regolarità locali.
 
-Un'ulteriore limitazione riguarda le soglie di similarità. Le soglie sono domain-specific e influenzano il risultato della discovery. Soglie più strette produrrebbero meno coppie simili; soglie più larghe aumenterebbero l'applicabilità ma potrebbero rendere le regole meno precise. Una possibile estensione sarebbe confrontare sistematicamente più configurazioni di soglie.
+Un'ulteriore limitazione riguarda le soglie di similarità. Le soglie sono domain-specific e influenzano il risultato della discovery. La sensitivity analysis confronta variazioni moderate globali e mirate su \Wspm, ma non identifica una parametrizzazione ottima e non copre l'intero spazio delle soglie possibili. Il controllo serve quindi a qualificare la stabilità del risultato, non a eliminare la dipendenza metodologica dalle soglie.
 
 Infine, il workflow non include un modello causale né un sistema di allarme automatico. Le violazioni sono esportate come casi da analizzare, non come errori certi. Questa scelta è intenzionale: in un contesto ambientale, una differenza inattesa può avere spiegazioni fisiche legittime e richiede sempre interpretazione di dominio.
 
@@ -370,7 +414,7 @@ Infine, il workflow non include un modello causale né un sistema di allarme aut
 
 Il progetto ha costruito un workflow di data profiling per dati ambientali storici, utilizzando Relaxed Functional Dependencies come metadati interpretabili di coerenza. Le osservazioni orarie del \textit{Beijing Multi-Site Air Quality Data Set} sono state pulite, profilate e aggregate in una relazione analitica di profili settimanali per stazione e fascia oraria. Su questa relazione è stato applicato \Dime{} con soglie di similarità definite per il dominio.
 
-Il risultato principale è la scoperta di 5 RFD minime, tutte orientate verso \Wspm. Quattro regole descrivono regolarità locali ad alta confidenza e basso supporto; una regola, \TimeSlot{} $\rightarrow$ \Wspm, rappresenta una regolarità più generale. Le analisi post-discovery mostrano che le regole hanno lift superiore alla baseline permutata, stabilità bootstrap e buona tenuta nello split temporale, pur mantenendo i limiti interpretativi legati al supporto.
+Il risultato principale, ottenuto con la configurazione \texttt{medium}, è la scoperta di 5 RFD minime, tutte orientate verso \Wspm. Quattro regole descrivono regolarità locali ad alta confidenza e basso supporto; una regola, \TimeSlot{} $\rightarrow$ \Wspm, rappresenta una regolarità più generale. Le analisi post-discovery mostrano che le regole hanno lift superiore alla baseline permutata, stabilità bootstrap e buona tenuta nello split temporale, pur mantenendo i limiti interpretativi legati al supporto. La sensitivity analysis conferma l'utilità di \texttt{medium} come compromesso principale, ma mostra anche che la dominanza di \Wspm{} dipende dalle soglie e non deve essere sovrainterpretata.
 
 Il continuous profiling mensile e l'analisi delle violazioni mostrano come le RFD possano essere usate non solo come risultato statico, ma come strumenti per monitorare l'evoluzione delle regolarità e individuare casi da approfondire. In una prospettiva di Urban Digital Twin concettuale, questo workflow supporta la costruzione di conoscenza interpretabile dai dati ambientali, mantenendo chiari i confini tra regolarità descrittiva, anomalia potenziale e causalità.
 
