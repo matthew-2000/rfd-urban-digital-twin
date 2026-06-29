@@ -32,8 +32,8 @@ come caso di studio per un \textit{Urban Digital Twin} (UDT) concettuale. Il
 dataset \`e un sottoinsieme del \textit{Beijing Multi-Site Air Quality Data
 Set}, limitato alle stazioni Aotizhongxin e Changping nel periodo marzo
 2013--febbraio 2017. La scoperta delle \textit{Relaxed Functional Dependencies}
-(RFDs) usa DiM$\varepsilon$, algoritmo esplicitamente trattato nel corso KDIID
-e descritto da Caruccio, Deufemia e Polese. L'implementazione comprende matrici
+(RFDs) usa DiM$\varepsilon$, algoritmo lattice-based per il mining di RFD
+descritto da Caruccio, Deufemia e Polese. L'implementazione comprende matrici
 delle differenze, insiemi di pattern simili stripped, lattice completo degli
 attributi, insiemi candidati $C^+$, pruning e validazione ibrida tramite errore
 $g_3$. Tutte le 66619 osservazioni pulite contribuiscono a una relazione
@@ -58,9 +58,8 @@ con vincoli di similarit\`a e possono ammettere eccezioni
 variabili non osservate.
 
 Gli obiettivi sono: costruire e profilare un dataset pulito; scoprire RFD
-minime con un algoritmo del corso; misurare supporto, confidenza e lift delle
-RFD scoperte; verificarne robustezza temporale; esportare le coppie violanti.
-Le regole selezionate manualmente restano soltanto un confronto supplementare.
+minime con DiM$\varepsilon$; misurare supporto, confidenza e lift delle RFD
+scoperte; verificarne robustezza temporale; esportare le coppie violanti.
 
 \section{Dati e preprocessing}
 La sorgente \`e il \textit{Beijing Multi-Site Air Quality Data Set} della UCI
@@ -125,7 +124,7 @@ costituiscono input o scorciatoie per la scoperta DiM$\varepsilon$.
 
 \section{RFD discovery algorithm: DiM$\varepsilon$}
 DiM$\varepsilon$ (\textit{Difference Matrices and $\varepsilon$-thresholds})
-\`e l'algoritmo del corso usato come metodo principale
+\`e il metodo lattice-based adottato per la scoperta delle RFD
 \cite{rfd-mining}. L'input \`e una relazione, una funzione di distanza e una
 soglia di similarit\`a per ogni attributo, pi\`u una soglia di estensione
 $\varepsilon$ per l'errore $g_3$. L'output \`e l'insieme delle RFD minime che
@@ -188,19 +187,16 @@ vertex-cover prevista da DiM$\varepsilon$; il modulo espone anche la modalit\`a
 esatta di decisione vertex-cover prevista dall'implementazione di riferimento,
 con limite derivato esclusivamente dalla soglia di estensione richiesta.
 
-Come controllo indipendente, l'algoritmo \`e stato eseguito sul file
-\texttt{iris.csv} distribuito dagli autori, con gli stessi parametri
-\texttt{maxthr=1}, \texttt{maxcovthr=1} e modalit\`a greedy. Il JAR ufficiale
-riporta 5 RFD:
+Come controllo di correttezza implementativa, l'output dell'implementazione
+Python \`e stato confrontato con il JAR ufficiale degli autori sul dataset
+\texttt{iris.csv}, usando \texttt{maxthr=1}, \texttt{maxcovthr=1} e modalit\`a
+greedy. Entrambe le implementazioni restituiscono le stesse 5 RFD:
 \texttt{$\emptyset\rightarrow B$},
 \texttt{$E\rightarrow D$},
 \texttt{$E\rightarrow A$},
 \texttt{$E\rightarrow C$} e
-\texttt{$A,C\rightarrow D$}. L'implementazione Python restituisce esattamente
-lo stesso insieme, senza regole mancanti o aggiuntive; registra inoltre,
-nello stesso ordine logico, $g_3=$ 0.0133, 0, 0.0267, 0.0200 e 0.0933. Il JAR
-non esporta il $g_3$ per singola regola, quindi il confronto esatto verificabile
-riguarda cardinalit\`a e identit\`a delle dipendenze.
+\texttt{$A,C\rightarrow D$}. L'implementazione Python registra inoltre,
+nello stesso ordine logico, $g_3=$ 0.0133, 0, 0.0267, 0.0200 e 0.0933.
 
 \section{Metriche e analisi post-discovery}
 Le metriche pairwise non determinano quali regole DiM$\varepsilon$ scopre, ma
@@ -283,27 +279,26 @@ errore.
 \caption{Concentrazione delle coppie violanti per mese e stazione.}
 \end{figure}
 
-Le precedenti regole manuali e le varianti binned sono mantenute soltanto nei
-CSV supplementari dedicati. Non
-costituiscono il metodo principale e non vengono presentate come output della
-scoperta.
-
 \section{Discussione e conclusioni}
-Il progetto usa DiM$\varepsilon$ come algoritmo di scoperta del corso, senza
-limiti artificiali alla dimensione del LHS e senza sostituirlo con una ricerca
-custom di combinazioni. La riduzione computazionale avviene sul dato:
-un'aggregazione domain-driven usa tutte le osservazioni e preserva stazione e
-fascia oraria. Questa scelta rende trattabile il costo pairwise quadratico, ma
-sposta il significato delle RFD dal livello orario al profilo settimanale.
+Il workflow applica DiM$\varepsilon$ a profili settimanali di qualit\`a
+dell'aria organizzati per stazione e fascia oraria. L'aggregazione domain-driven
+usa tutte le osservazioni pulite e rende trattabile il costo quadratico delle
+matrici delle differenze; di conseguenza, le RFD descrivono la coerenza dei
+profili settimanali e non delle singole misure orarie.
 
-I risultati mostrano cinque regolarit\`a minime orientate verso \texttt{WSPM}.
-Il lift superiore a 1 indica un vantaggio rispetto alla baseline permutata, ma
-il margine \`e moderato e quattro regole hanno supporto molto basso. Non si
-formulano quindi leggi ambientali o affermazioni causali. L'UDT resta
-concettuale; le RFD servono per consistency profiling e continuous profiling.
-Future estensioni dovrebbero verificare la sensibilit\`a a diverse granularit\`a
-temporali e soglie, oppure usare DOMINO quando l'obiettivo sia inferire le
-soglie anzich\'e fornirle come input.
+DiM$\varepsilon$ scopre 5 RFD minime, tutte orientate verso
+\texttt{WSPM}. Le metriche post-discovery chiariscono frequenza di
+applicabilit\`a, confidenza, vantaggio rispetto alla baseline permutata e
+stabilit\`a nel tempo. Quattro RFD hanno supporto molto basso e rappresentano
+regolarit\`a specifiche; \texttt{time\_slot $\rightarrow$ WSPM} \`e la
+regolarit\`a pi\`u generale.
+
+Il continuous profiling consente di osservare l'evoluzione temporale delle
+regole, mentre le coppie violanti forniscono casi concreti per successive
+verifiche su condizioni locali, qualit\`a dei dati o eventi non osservati.
+Nel quadro dell'UDT concettuale, il workflow supporta quindi monitoraggio e
+follow-up della coerenza ambientale. I risultati descrivono regolarit\`a
+approssimate e non relazioni causali.
 
 \begin{thebibliography}{9}
 \bibitem{uci}
