@@ -8,299 +8,374 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{array}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{float}
-\usepackage{hyperref}
 \usepackage{setspace}
 \usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{hyperref}
 
 \geometry{margin=2.5cm}
-\setstretch{1.1}
-\graphicspath{{figures/}}
-\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue,citecolor=black}
+\setstretch{1.12}
+\sloppy
 
-\title{\textbf{Profilazione della coerenza della qualit\`a dell'aria urbana mediante Relaxed Functional Dependencies}}
-\author{Nome Cognome \\ Matricola: XXXXXXX \\ Corso: XXXXXXX}
-\date{\today}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+% Figure robuste: se il file non esiste, il documento compila comunque.
+\newcommand{\safeincludegraphics}[2][]{%
+  \IfFileExists{#2}{%
+    \includegraphics[#1]{#2}%
+  }{%
+    \fbox{\parbox{0.75\textwidth}{\centering Figura non disponibile: \texttt{\detokenize{#2}}}}%
+  }%
+}
+
+% Macro testuali sicure.
+\newcommand{\Dime}{DiM\ensuremath{\varepsilon}}
+\newcommand{\PMdue}{\texttt{PM2.5}}
+\newcommand{\PMdieci}{\texttt{PM10}}
+\newcommand{\NOdue}{\texttt{NO2}}
+\newcommand{\Otre}{\texttt{O3}}
+\newcommand{\Temp}{\texttt{TEMP}}
+\newcommand{\Wspm}{\texttt{WSPM}}
+\newcommand{\Station}{\texttt{station}}
+\newcommand{\TimeSlot}{\texttt{time\_slot}}
+
+\title{\textbf{Profilazione della coerenza della qualità dell'aria urbana mediante Relaxed Functional Dependencies}}
+\author{Matteo Ercolino \\ Matricola: 8860100075 \\ Corso: Knowledge Discovery from IoT \\and Industrial Data for Smart and Connected Systems}
 
 \begin{document}
+
 \maketitle
 
 \begin{abstract}
-Questo lavoro presenta un'analisi riproducibile della qualit\`a dell'aria urbana
-come caso di studio per un \textit{Urban Digital Twin} (UDT) concettuale. Il
-dataset \`e un sottoinsieme del \textit{Beijing Multi-Site Air Quality Data
-Set}, limitato alle stazioni Aotizhongxin e Changping nel periodo marzo
-2013--febbraio 2017. La scoperta delle \textit{Relaxed Functional Dependencies}
-(RFDs) usa DiM$\varepsilon$, algoritmo lattice-based per il mining di RFD
-descritto da Caruccio, Deufemia e Polese. L'implementazione comprende matrici
-delle differenze, insiemi di pattern simili stripped, lattice completo degli
-attributi, insiemi candidati $C^+$, pruning e validazione ibrida tramite errore
-$g_3$. Tutte le 66619 osservazioni pulite contribuiscono a una relazione
-analitica di 1676 righe, formata da mediane settimanali per stazione e fascia
-oraria sugli otto attributi di scoperta. Con soglie di similarit\`a
-domain-specific e $g_3 \leq 0.10$, DiM$\varepsilon$ visita otto livelli,
-valida 960 candidati e restituisce 5 RFD minime. La regola con confidenza
-pairwise pi\`u alta \`e
-\texttt{station, PM10, NO2, O3, TEMP $\rightarrow$ WSPM}, con confidenza
-0.899, supporto 0.00161, lift 1.163 e $g_3=0.092$. Permutation baseline,
-bootstrap, validazione temporale, continuous profiling e analisi delle
-violazioni sono applicati esclusivamente dopo la scoperta. Le RFD descrivono
-regolarit\`a approssimate e non relazioni causali.
+Questo progetto analizza dati storici di qualità dell'aria urbana attraverso tecniche di data profiling e scoperta di \textit{Relaxed Functional Dependencies} (RFDs). Il caso di studio utilizza un sottoinsieme del \textit{Beijing Multi-Site Air Quality Data Set}, limitato alle stazioni Aotizhongxin e Changping nel periodo marzo 2013--febbraio 2017. L'obiettivo non è costruire un Digital Twin operativo in tempo reale, ma definire un workflow analitico riconducibile a un Urban Digital Twin concettuale: i dati ambientali vengono trasformati in profili interpretabili, analizzati per estrarre regolarità approssimate e verificati nel tempo per individuare coerenze e possibili anomalie.
+
+Dopo la pulizia dei dati, 66619 osservazioni orarie vengono aggregate in 1676 profili settimanali per stazione e fascia oraria. Su questa relazione analitica viene applicato \Dime, algoritmo lattice-based per la scoperta di RFD. Le soglie di similarità sono definite in modo domain-specific sugli attributi ambientali e la soglia di errore è fissata a $g_3 \leq 0.10$. Il processo scopre 5 RFD minime.
+
+Le RFD scoperte vengono interpretate mediante metriche post-discovery, permutation baseline, bootstrap, validazione temporale, continuous profiling mensile e analisi delle coppie violanti. I risultati mostrano che alcune regole descrivono regolarità locali ad alta confidenza ma basso supporto. Le dipendenze scoperte non sono interpretate come relazioni causali, ma come vincoli approssimati di coerenza utili per il monitoraggio, la profilazione e il follow-up di possibili anomalie nei dati ambientali.
 \end{abstract}
 
 \section{Introduzione}
-Nel progetto l'UDT non \`e una piattaforma 3D o real-time, ma una cornice
-analitica per descrivere coerenze e possibili anomalie in dati ambientali
-storici. Le RFD sostituiscono l'uguaglianza rigida delle dipendenze funzionali
-con vincoli di similarit\`a e possono ammettere eccezioni
-\cite{rfd-survey}. Questo le rende adatte a fenomeni rumorosi e influenzati da
-variabili non osservate.
 
-Gli obiettivi sono: costruire e profilare un dataset pulito; scoprire RFD
-minime con DiM$\varepsilon$; misurare supporto, confidenza e lift delle RFD
-scoperte; verificarne robustezza temporale; esportare le coppie violanti.
+I sistemi urbani producono grandi quantità di dati ambientali attraverso reti di sensori, stazioni di monitoraggio e infrastrutture digitali. Questi dati sono spesso rumorosi, incompleti, stagionali e influenzati da fenomeni non completamente osservabili. In uno scenario di Smart City o Urban Digital Twin, il problema non consiste soltanto nel memorizzare le misure, ma nel trasformarle in conoscenza utilizzabile: profili sintetici, regolarità, deviazioni dal comportamento atteso e indicatori di qualità dei dati.
 
-\section{Dati e preprocessing}
-La sorgente \`e il \textit{Beijing Multi-Site Air Quality Data Set} della UCI
-\cite{uci}. Sono usate le due stazioni disponibili localmente,
-\texttt{Aotizhongxin} e \texttt{Changping}, nell'intera copertura comune dal
-1 marzo 2013 al 28 febbraio 2017. Dopo il riepilogo dei valori mancanti, le
-righe incomplete sulle colonne selezionate vengono eliminate senza
-imputazione. Il dataset pulito contiene 66619 righe e 11 colonne.
+Il progetto si colloca in questa prospettiva. L'Urban Digital Twin viene inteso come cornice concettuale per organizzare dati, metodi di analisi e strumenti di interpretazione. Non viene quindi sviluppata una piattaforma 3D, né un sistema real-time completo. Si costruisce invece un workflow di data profiling applicato a dati ambientali storici, con lo scopo di descrivere la coerenza tra variabili atmosferiche e inquinanti in due stazioni urbane.
 
-Il profiling usa tutte le righe. Per DiM$\varepsilon$ si costruisce invece una
-relazione analitica domain-driven: per ogni settimana, stazione e
-\texttt{time\_slot} si calcola la mediana di \texttt{PM2.5}, \texttt{PM10},
-\texttt{NO2}, \texttt{O3}, \texttt{TEMP} e \texttt{WSPM}. Ne risultano 1676
-righe, che rappresentano tutte le 66619 osservazioni originarie. La chiave
-temporale e il numero di righe sorgente sono mantenuti per lineage ma non
-partecipano alla scoperta.
+La tecnica principale utilizzata è la scoperta di \textit{Relaxed Functional Dependencies}. Le dipendenze funzionali classiche esprimono vincoli esatti del tipo $X \rightarrow Y$: se due tuple coincidono sugli attributi $X$, allora devono coincidere anche sugli attributi $Y$. Questa formulazione è molto utile in contesti relazionali e di qualità dei dati, ma risulta troppo rigida per dati ambientali reali. Due misure di \PMdieci{} possono essere considerate simili anche se non identiche; allo stesso modo, due valori di temperatura possono essere coerenti entro una certa tolleranza. Le RFD generalizzano quindi il concetto di dipendenza funzionale sostituendo l'uguaglianza esatta con relazioni di similarità e consentendo una quota controllata di eccezioni \cite{rfd-survey}.
+
+L'obiettivo del progetto è rispondere a tre domande principali. La prima riguarda la costruzione del dato: come trasformare osservazioni orarie rumorose in una relazione analitica adatta alla scoperta di RFD? La seconda riguarda la scoperta: quali regolarità approssimate emergono tra stazione, fascia oraria, inquinanti, temperatura e vento? La terza riguarda l'interpretazione: quanto sono frequenti, robuste e temporalmente stabili le regole scoperte?
+
+Il contributo del lavoro è quindi duplice. Da un lato, viene applicato un metodo di discovery coerente con i temi del corso, in particolare data profiling, RFD discovery e continuous profiling. Dall'altro, viene proposta una lettura orientata al dominio: le RFD non sono presentate come mere regole statistiche, ma come profili di coerenza ambientale che possono supportare analisi successive di anomalie, qualità del dato e cambiamenti nel tempo.
+
+\section{Contesto metodologico}
+
+\subsection{Data profiling e metadati}
+
+Il data profiling consiste nell'analisi di una sorgente dati per estrarre informazioni sintetiche sulle sue proprietà. Queste informazioni possono includere statistiche descrittive, distribuzioni, valori mancanti, correlazioni, chiavi candidate, pattern frequenti e dipendenze tra attributi. Nel contesto dei dati IoT e industriali, il profiling è particolarmente importante perché i dati sono spesso generati in modo continuo, da sensori distribuiti e con livelli variabili di qualità.
+
+Nel progetto, il profiling ha due ruoli distinti. Il primo è descrittivo: prima della scoperta delle RFD, vengono analizzate dimensione del dataset, valori mancanti, distribuzioni e correlazioni. Il secondo è strutturale: le RFD scoperte diventano metadati di livello più alto, perché descrivono relazioni approssimate tra attributi e possono essere monitorate nel tempo.
+
+Questa distinzione è importante. Le statistiche descrittive servono a comprendere il dataset. Le RFD sono invece scoperte automaticamente mediante \Dime{} a partire dalla relazione analitica e dalle soglie di similarità definite.
+
+\subsection{Functional Dependencies e Relaxed Functional Dependencies}
+
+Una dipendenza funzionale classica $X \rightarrow Y$ è soddisfatta in una relazione se, per ogni coppia di tuple, l'uguaglianza sui valori di $X$ implica l'uguaglianza sui valori di $Y$. Per esempio, in un database anagrafico ben progettato, una combinazione come \texttt{Street, City} potrebbe determinare \texttt{ZipCode}. Questo tipo di vincolo è esatto: anche una sola violazione può invalidare la dipendenza.
+
+Nei dati ambientali, tuttavia, l'esattezza è raramente appropriata. Le misure sono continue, soggette a rumore strumentale e influenzate da condizioni esterne. Per questo motivo si utilizzano le RFD. Una RFD del tipo
+\[
+X_{\Phi_X} \rightarrow A_{\phi_A}
+\]
+può essere letta così: se due tuple sono simili sugli attributi del lato sinistro $X$ secondo le soglie definite, allora ci si aspetta che siano simili anche sull'attributo del lato destro $A$, ammettendo eventualmente una quota limitata di eccezioni.
+
+\subsection{Perché usare RFD su dati di qualità dell'aria}
+
+I dati di qualità dell'aria sono un caso adatto alle RFD per tre ragioni. Primo, gli attributi sono per lo più numerici e continui: richiedere uguaglianza esatta tra valori di \PMdue, \PMdieci{} o temperatura sarebbe poco informativo. Secondo, il fenomeno fisico è multivariato: gli inquinanti, le condizioni meteorologiche e il contesto temporale interagiscono in modo complesso. Terzo, le eccezioni sono significative: una violazione può dipendere da rumore, micro-eventi locali, errori di misura, cambiamenti meteorologici o condizioni non osservate.
+
+Le RFD permettono quindi di esprimere una nozione più realistica di regolarità: non ``uguale implica uguale'', ma ``sufficientemente simile implica normalmente simile''. Questa formulazione è più adatta a un workflow di profiling ambientale.
+
+\section{Dataset}
+
+\subsection{Sorgente dei dati}
+
+La sorgente utilizzata è il \textit{Beijing Multi-Site Air Quality Data Set} della UCI Machine Learning Repository \cite{uci}. Il dataset originale contiene misurazioni orarie di qualità dell'aria e variabili meteorologiche raccolte da diverse stazioni di monitoraggio a Pechino tra il 2013 e il 2017.
+
+Nel progetto sono state considerate le due stazioni disponibili localmente: \texttt{Aotizhongxin} e \texttt{Changping}. Il periodo analizzato copre l'intervallo comune dal 1 marzo 2013 al 28 febbraio 2017. La scelta di usare due stazioni consente di mantenere una dimensione gestibile per la scoperta delle RFD e, allo stesso tempo, di preservare un minimo di variabilità spaziale.
+
+Gli attributi principali considerati sono gli inquinanti \PMdue, \PMdieci, \NOdue, \Otre, la temperatura \Temp, la velocità del vento \Wspm, la stazione e l'informazione temporale. Altri attributi presenti nella sorgente, come \texttt{DEWP}, sono utilizzati nel profiling descrittivo ma non entrano nella relazione finale di discovery.
+
+\subsection{Pulizia dei dati}
+
+La fase di preprocessing ha l'obiettivo di costruire un dataset coerente e privo di valori mancanti sulle colonne selezionate. Dopo l'ispezione iniziale, le righe incomplete vengono eliminate senza imputazione. Questa scelta è conservativa: evita di introdurre valori artificiali che potrebbero alterare la scoperta delle dipendenze.
+
+Il dataset pulito contiene 66619 righe e 11 colonne. La distribuzione per stazione è quasi bilanciata: 32779 osservazioni per Aotizhongxin e 33840 per Changping. Questa dimensione è adeguata per il profiling descrittivo, ma non è direttamente utilizzata per il mining RFD pairwise su tutte le osservazioni orarie, perché il confronto tra coppie di tuple avrebbe costo quadratico.
 
 \begin{table}[H]
 \centering
-\caption{Dataset e relazione analitica DiM$\varepsilon$}
+\caption{Dataset pulito e relazione analitica utilizzata per DiMepsilon}
 \begin{tabular}{lr}
 \toprule
 Indicatore & Valore \\
 \midrule
 Righe pulite & 66619 \\
 Colonne pulite & 11 \\
-Aotizhongxin & 32779 \\
-Changping & 33840 \\
-Righe della relazione DiM$\varepsilon$ & 1676 \\
-Attributi di scoperta & 8 \\
-Coppie nella relazione DiM$\varepsilon$ & 1\,403\,650 \\
+Osservazioni Aotizhongxin & 32779 \\
+Osservazioni Changping & 33840 \\
+Righe della relazione analitica & 1676 \\
+Attributi usati nella discovery & 8 \\
+Coppie nella relazione analitica & 1\,403\,650 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-La relazione contiene
-\texttt{station}, \texttt{time\_slot}, \texttt{PM2.5}, \texttt{PM10},
-\texttt{NO2}, \texttt{O3}, \texttt{TEMP}, \texttt{WSPM}. Questa scelta
-preserva sito, contesto intra-giornaliero, inquinanti e vento/temperatura,
-limitando al contempo il costo quadratico delle matrici delle differenze. Non
-viene imposto alcun limite alla dimensione del lato sinistro.
+\subsection{Costruzione dei profili settimanali}
+
+Per la scoperta delle RFD non si utilizzano direttamente le osservazioni orarie, ma una relazione analitica costruita tramite aggregazione. Ogni riga della relazione rappresenta un profilo settimanale per una specifica stazione e una specifica fascia oraria. Per ogni combinazione di settimana, stazione e \TimeSlot, viene calcolata la mediana degli attributi \PMdue, \PMdieci, \NOdue, \Otre, \Temp{} e \Wspm.
+
+La mediana è stata scelta perché è più robusta della media rispetto a picchi estremi e outlier. Nei dati ambientali, valori molto elevati possono corrispondere a eventi reali, errori o condizioni temporanee. La mediana consente di rappresentare il comportamento tipico di una finestra settimanale senza far dominare eccessivamente questi picchi.
+
+L'attributo \TimeSlot{} rappresenta il contesto intra-giornaliero. Anche se la relazione è settimanale, il tempo non viene completamente appiattito: distinguere fasce della giornata permette di mantenere una parte della struttura temporale giornaliera. In pratica, una riga non rappresenta ``tutta la settimana'' in modo indistinto, ma il comportamento tipico di una certa stazione in una certa fascia oraria durante quella settimana.
+
+La relazione finale contiene 1676 righe. Ogni riga conserva il collegamento con il periodo di origine e con il numero di osservazioni orarie aggregate, ma questi attributi di lineage non partecipano direttamente alla discovery. Gli attributi effettivamente usati da \Dime{} sono riportati di seguito:
+
+\begin{center}
+\texttt{station}, \TimeSlot, \PMdue, \PMdieci, \NOdue, \Otre, \Temp, \Wspm
+\end{center}
+
+Questa trasformazione introduce un compromesso esplicito. Da un lato, si perde il dettaglio delle singole misure orarie. Dall'altro, si ottiene una relazione più stabile, più interpretabile e computazionalmente trattabile. Le RFD scoperte devono quindi essere interpretate come regolarità tra profili settimanali, non tra singole osservazioni orarie.
 
 \section{Profiling descrittivo}
-Le medie sul dataset orario pulito sono 76.53 per \texttt{PM2.5}, 101.95 per
-\texttt{PM10}, 51.51 per \texttt{NO2} e 56.91 per \texttt{O3}. Le
-correlazioni pi\`u forti sono \texttt{PM2.5}--\texttt{PM10} (0.874),
-\texttt{TEMP}--\texttt{DEWP} (0.823) e
-\texttt{PM2.5}--\texttt{NO2} (0.679). Questi valori sono descrittivi e non
-costituiscono input o scorciatoie per la scoperta DiM$\varepsilon$.
+
+Prima della scoperta delle RFD è stata effettuata un'analisi descrittiva del dataset orario pulito. Questa fase serve a comprendere la scala dei valori, la distribuzione delle variabili e le principali relazioni lineari tra attributi.
+
+Le medie osservate sul dataset pulito sono 76.53 per \PMdue, 101.95 per \PMdieci, 51.51 per \NOdue{} e 56.91 per \Otre. Le correlazioni più elevate sono \PMdue--\PMdieci{} pari a 0.874, \Temp--\texttt{DEWP} pari a 0.823 e \PMdue--\NOdue{} pari a 0.679.
+
+Questi valori sono coerenti con l'interpretazione di dominio: \PMdue{} e \PMdieci{} sono entrambi indicatori di particolato e tendono a muoversi insieme; temperatura e punto di rugiada sono variabili meteorologiche correlate; \PMdue{} e \NOdue{} possono condividere sorgenti urbane o condizioni atmosferiche favorevoli all'accumulo. Tuttavia, queste correlazioni non vengono usate per selezionare manualmente le RFD. La discovery resta guidata dall'algoritmo e dalle soglie di similarità.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{pm25_timeseries.png}
-\caption{Media giornaliera di \texttt{PM2.5} per stazione.}
+\safeincludegraphics[width=0.78\textwidth]{figures/pm25_timeseries.png}
+\caption{Media giornaliera di PM2.5 per stazione.}
 \end{figure}
 
+La serie temporale del \PMdue{} consente di osservare variazioni stagionali e picchi locali. Questi fenomeni motivano l'uso di regole approssimate invece di vincoli esatti: la qualità dell'aria non segue una struttura deterministica rigida, ma presenta regolarità statistiche e temporali con eccezioni.
+
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{correlation_matrix.png}
+\safeincludegraphics[width=0.78\textwidth]{figures/correlation_matrix.png}
 \caption{Matrice di correlazione sul dataset pulito.}
 \end{figure}
 
-\section{RFD discovery algorithm: DiM$\varepsilon$}
-DiM$\varepsilon$ (\textit{Difference Matrices and $\varepsilon$-thresholds})
-\`e il metodo lattice-based adottato per la scoperta delle RFD
-\cite{rfd-mining}. L'input \`e una relazione, una funzione di distanza e una
-soglia di similarit\`a per ogni attributo, pi\`u una soglia di estensione
-$\varepsilon$ per l'errore $g_3$. L'output \`e l'insieme delle RFD minime che
-soddisfano tali vincoli.
+La matrice di correlazione fornisce una prima descrizione delle relazioni lineari, ma non sostituisce la scoperta delle RFD. Una correlazione misura l'associazione globale tra due variabili; una RFD descrive invece una regolarità condizionata su similarità tra tuple e può coinvolgere più attributi sul lato sinistro.
 
-L'implementazione segue i passi dell'algoritmo:
-\begin{enumerate}[leftmargin=1.2cm]
-    \item costruzione della matrice delle differenze per ogni attributo;
-    \item derivazione dei pattern di tuple simili e degli insiemi stripped,
-    eliminando i pattern singleton;
-    \item costruzione level-wise del lattice completo degli otto attributi;
-    \item generazione dei candidati $X\setminus\{A\}\rightarrow A$ mediante
-    gli insiemi $C^+(X)$;
-    \item validazione esatta mediante refinement/cardinalit\`a degli insiemi
-    stripped quando non sono ammesse eccezioni;
-    \item validazione ibrida tramite $g_3$, cio\`e la quota minima di tuple da
-    rimuovere per rendere valida la RFD;
-    \item applicazione dei bound DiM$\varepsilon$, del pruning dei candidati,
-    del pruning delle chiavi e del controllo di minimalit\`a;
-    \item join dei nodi compatibili per generare il livello successivo.
-\end{enumerate}
+\section{Metodo}
+
+\subsection{Algoritmo di scoperta delle RFD}
+
+La scoperta delle RFD è stata effettuata con \Dime, un algoritmo lattice-based progettato per il mining di Relaxed Functional Dependencies \cite{rfd-mining}. L'algoritmo riceve in input una relazione, una funzione di distanza per ogni attributo, soglie di similarità e una soglia di errore. L'output è un insieme di RFD minime che soddisfano tali vincoli.
+
+L'idea generale è esplorare lo spazio delle combinazioni di attributi in modo ordinato, generando candidati del tipo $X \rightarrow A$ e verificando se la similarità su $X$ implica, entro una quota di errore ammessa, la similarità su $A$. L'esplorazione lattice-based permette di evitare una ricerca completamente esaustiva non strutturata e di mantenere solo le dipendenze minime.
+
+\subsection{Soglie di similarità}
+
+Per gli attributi numerici viene utilizzata la differenza assoluta. Due valori sono considerati simili se la loro distanza è minore o uguale alla soglia definita per quell'attributo. Per gli attributi categorici \Station{} e \TimeSlot, la similarità coincide con l'uguaglianza.
 
 \begin{table}[H]
 \centering
-\caption{Tracciabilit\`a dei passi DiM$\varepsilon$}
-\small
-\begin{tabularx}{\textwidth}{p{0.27\textwidth} >{\raggedright\arraybackslash}X p{0.25\textwidth}}
+\caption{Soglie di similarità usate nella discovery}
+\begin{tabular}{llr}
 \toprule
-Passo implementato & Funzioni principali & Fonte \\
+Attributo & Tipo di confronto & Soglia \\
 \midrule
-Matrici delle differenze &
-\texttt{build\_difference\_matrices} &
-Lezione 3, slide 30--31; Definizione 2 \cite{rfd-discussion} \\
-Pattern simili e insiemi stripped &
-\texttt{StrippedSimilarSubsets} &
-Lezione 3, slide 32--35; Definizione 3 \cite{rfd-discussion} \\
-Lattice completo e $C^+$ &
-\texttt{\_initialize\_candidates}, \texttt{\_generate\_next\_level} &
-Lezione 3, slide 29--30; Sezione 4 \cite{rfd-discussion} \\
-Refinement e cardinalit\`a &
-\texttt{\_validate} &
-Lezione 3, slide 36--39; Lemmi 1--2 \cite{rfd-discussion} \\
-$g_3$, caso disgiunto e vertex cover &
-\texttt{\_g3\_error}, \texttt{\_official\_greedy\_vertex\_cover} &
-Lezione 3, slide 40--41; Sezione 4 \cite{rfd-discussion} \\
-Bound, pruning e RFD minime &
-\texttt{\_compute\_dependencies}, \texttt{\_prune\_keys} &
-Lezione 3, slide 29--30 e 41; distribuzione ufficiale \cite{dime-software} \\
+\Station & uguaglianza & -- \\
+\TimeSlot & uguaglianza & -- \\
+\PMdue & differenza assoluta & 10 \\
+\PMdieci & differenza assoluta & 15 \\
+\NOdue & differenza assoluta & 10 \\
+\Otre & differenza assoluta & 10 \\
+\Temp & differenza assoluta & 2 \\
+\Wspm & differenza assoluta & 1 \\
 \bottomrule
-\end{tabularx}
+\end{tabular}
 \end{table}
 
-Per attributi numerici si usa la differenza assoluta; per
-\texttt{station} e \texttt{time\_slot} l'uguaglianza. Le soglie \texttt{medium}
-sono: 10 per \texttt{PM2.5}, 15 per \texttt{PM10}, 10 per \texttt{NO2},
-10 per \texttt{O3}, 2 per \texttt{TEMP} e 1 per \texttt{WSPM}. La soglia
-di estensione \`e $g_3\leq0.10$. Poich\'e il calcolo generale di $g_3$ per
-RFD ibride \`e NP-completo, il run principale usa l'approssimazione greedy
-vertex-cover prevista da DiM$\varepsilon$; il modulo espone anche la modalit\`a
-esatta di decisione vertex-cover prevista dall'implementazione di riferimento,
-con limite derivato esclusivamente dalla soglia di estensione richiesta.
+Le soglie sono scelte come tolleranze interpretative. Per esempio, due profili con \PMdieci{} che differisce di meno di 15 unità vengono trattati come simili rispetto a quell'attributo. La soglia su \Wspm{} è più stretta perché la velocità del vento ha scala numerica diversa e variazioni minori possono essere già significative.
 
-Come controllo di correttezza implementativa, l'output dell'implementazione
-Python \`e stato confrontato con il JAR ufficiale degli autori sul dataset
-\texttt{iris.csv}, usando \texttt{maxthr=1}, \texttt{maxcovthr=1} e modalit\`a
-greedy. Entrambe le implementazioni restituiscono le stesse 5 RFD:
-\texttt{$\emptyset\rightarrow B$},
-\texttt{$E\rightarrow D$},
-\texttt{$E\rightarrow A$},
-\texttt{$E\rightarrow C$} e
-\texttt{$A,C\rightarrow D$}. L'implementazione Python registra inoltre,
-nello stesso ordine logico, $g_3=$ 0.0133, 0, 0.0267, 0.0200 e 0.0933.
+\subsection{Errore g3}
 
-\section{Metriche e analisi post-discovery}
-Le metriche pairwise non determinano quali regole DiM$\varepsilon$ scopre, ma
-servono a ordinarle e interpretarle dopo la scoperta:
+La soglia di estensione è fissata a $g_3 \leq 0.10$. Il valore $g_3$ misura la quota minima di tuple che dovrebbero essere rimosse per rendere valida la dipendenza rispetto alle soglie definite. In altre parole, non conta semplicemente quante coppie violano la regola, ma esprime un errore a livello di tuple.
+
+Questo punto è essenziale per interpretare correttamente i risultati. Una RFD può avere un valore $g_3$ basso e, allo stesso tempo, una violation rate pairwise non trascurabile. Non si tratta di una contraddizione, perché le due misure rispondono a domande diverse. Il $g_3$ chiede quante tuple dovrebbero essere eliminate per riparare la regola; la confidenza pairwise chiede quante coppie simili sul lato sinistro rispettano anche il lato destro.
+
+\subsection{Metriche post-discovery}
+
+Le metriche post-discovery non determinano quali regole vengono scoperte da \Dime; servono invece a interpretare e ordinare le RFD ottenute. Le metriche principali sono supporto, confidenza e lift.
+
+Il supporto misura la quota di coppie di tuple per cui il lato sinistro della RFD è applicabile:
 \[
-\mathrm{support}=\frac{\mathrm{antecedent\ pairs}}{\mathrm{total\ pairs}},
-\qquad
-\mathrm{confidence}=\frac{\mathrm{valid\ pairs}}{\mathrm{antecedent\ pairs}}.
+\mathrm{support} =
+\frac{\mathrm{antecedent\ pairs}}{\mathrm{total\ pairs}}.
 \]
-La baseline \`e la confidenza media su 30 permutazioni seeded del RHS e
+
+La confidenza misura, tra le coppie a cui la regola si applica, quante rispettano anche la similarità sul lato destro:
 \[
-\mathrm{lift}=\frac{\mathrm{confidence}}{\mathrm{baseline\ confidence}}.
+\mathrm{confidence} =
+\frac{\mathrm{valid\ pairs}}{\mathrm{antecedent\ pairs}}.
 \]
-Le prime quattro RFD
-vengono inoltre analizzate con 30 bootstrap bilanciati, split temporale
-2013--2016/2016--2017, finestre mensili e coppie violanti. Queste analisi sono
-successive a DiM$\varepsilon$ e non modificano il risultato della scoperta.
+
+Il lift confronta la confidenza osservata con una baseline ottenuta permutando il lato destro:
+\[
+\mathrm{lift} =
+\frac{\mathrm{confidence}}{\mathrm{baseline\ confidence}}.
+\]
+
+La baseline è calcolata come confidenza media su 30 permutazioni seeded del RHS. Se il lift è maggiore di 1, la regola è più informativa rispetto a una situazione in cui l'attributo di destra viene randomizzato mantenendo la distribuzione marginale.
+
+Sono inoltre applicate tre analisi di robustezza. La prima è il bootstrap, usato per valutare la stabilità empirica delle metriche. La seconda è lo split temporale 2013--2016/2016--2017, usato per verificare se le regole mantengono confidenza anche su un periodo successivo. La terza è il continuous profiling mensile, usato per osservare l'evoluzione temporale della confidenza.
 
 \section{Risultati}
-DiM$\varepsilon$ visita tutti gli 8 livelli del lattice, valida 960 candidati e
-scopre 5 RFD, tutte minime e con supporto positivo.
+
+\subsection{RFD scoperte}
+
+\Dime{} visita gli 8 livelli del lattice degli attributi, valuta 960 candidati e restituisce 5 RFD minime con supporto positivo. Tutte le regole scoperte hanno come lato destro \Wspm. Questo risultato suggerisce che, nella relazione analitica costruita, la velocità del vento è l'attributo che emerge più chiaramente come variabile coerente rispetto a combinazioni di stazione, fascia oraria, inquinanti e temperatura.
 
 \begin{table}[H]
 \centering
-\caption{Top RFD scoperte da DiM$\varepsilon$}
+\caption{RFD minime scoperte da DiMepsilon}
 \label{tab:dime}
 \small
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X r r r r}
 \toprule
 Regola & $g_3$ & Support & Conf. & Lift \\
 \midrule
-\texttt{station, PM10, NO2, O3, TEMP $\rightarrow$ WSPM}
+\texttt{station, PM10, NO2, O3, TEMP} $\rightarrow$ \texttt{WSPM}
 & 0.092 & 0.00161 & 0.899 & 1.163 \\
-\texttt{PM2.5, PM10, NO2, O3, TEMP $\rightarrow$ WSPM}
+\texttt{PM2.5, PM10, NO2, O3, TEMP} $\rightarrow$ \texttt{WSPM}
 & 0.074 & 0.00127 & 0.889 & 1.155 \\
-\texttt{station, PM2.5, NO2, O3, TEMP $\rightarrow$ WSPM}
+\texttt{station, PM2.5, NO2, O3, TEMP} $\rightarrow$ \texttt{WSPM}
 & 0.087 & 0.00138 & 0.887 & 1.151 \\
-\texttt{station, PM2.5, PM10, O3, TEMP $\rightarrow$ WSPM}
+\texttt{station, PM2.5, PM10, O3, TEMP} $\rightarrow$ \texttt{WSPM}
 & 0.081 & 0.00127 & 0.887 & 1.147 \\
-\texttt{time\_slot $\rightarrow$ WSPM}
+\TimeSlot{} $\rightarrow$ \texttt{WSPM}
 & 0.047 & 0.24955 & 0.858 & 1.113 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Quattro delle cinque regole raggiungono confidenza elevata ma supporto pairwise
-molto basso: devono essere interpretate come regolarit\`a specifiche di regioni
-locali e dense dello spazio di similarit\`a.
-\texttt{time\_slot $\rightarrow$ WSPM} \`e la RFD scoperta pi\`u generale,
-perch\'e ha supporto 0.24955, pur con un lift pi\`u contenuto. La differenza tra
-$g_3$ e violation rate non \`e una
-contraddizione: $g_3$ conta tuple da rimuovere, mentre la confidenza conta
-coppie valide.
+La prima regola ha la confidenza più alta. Può essere letta nel modo seguente: se due profili settimanali appartengono alla stessa stazione e sono simili per \PMdieci, \NOdue, \Otre{} e temperatura, allora tendono ad avere anche una velocità del vento simile. La regola non implica che gli inquinanti determinino il vento; descrive piuttosto una coerenza osservata tra profili ambientali simili.
 
-Il bootstrap conferma la stabilit\`a locale delle quattro RFD selezionate. Per
-la prima regola la confidenza media \`e 0.930 e il lift medio 1.207, con
-intervallo empirico al 95\% del lift $[1.171,1.244]$. Le altre tre mostrano
-lift medio tra 1.198 e 1.203. Nello split temporale, la prima regola passa da
-confidenza 0.888 nel train a 0.937 nel test; le altre passano da circa
-0.866--0.873 a 0.948--0.953. Il supporto resta tuttavia inferiore a 0.003:
-questa limitazione deve accompagnare qualsiasi interpretazione.
+Le prime quattro RFD hanno confidenza elevata ma supporto molto basso. Questo significa che si applicano a porzioni ristrette dello spazio delle tuple: quando trovano coppie molto simili sul lato sinistro, il lato destro è spesso coerente; tuttavia, tali coppie non sono frequenti rispetto al totale delle coppie possibili. Queste regole devono quindi essere interpretate come regolarità locali.
+
+La quinta RFD, \TimeSlot{} $\rightarrow$ \Wspm, è diversa. Ha una confidenza leggermente più bassa, ma un supporto molto più alto. Questo la rende la regola più generale. Il risultato indica che la fascia oraria contiene informazione utile sulla velocità del vento nei profili aggregati. In termini di dominio, questo è plausibile perché il vento può seguire dinamiche giornaliere e condizioni ricorrenti legate al momento della giornata.
+
+\subsection{Interpretazione del supporto}
+
+Il supporto è una delle metriche più importanti per evitare interpretazioni eccessive. Una regola con confidenza alta ma supporto basso è affidabile solo nelle condizioni in cui si applica. Non descrive necessariamente l'intero dataset.
+
+Nel caso delle prime quattro RFD, il supporto è inferiore a 0.002. Questo non invalida le regole, perché \Dime{} le ha scoperte come RFD minime entro la soglia $g_3$, ma impone cautela. Il risultato va letto come segue: esistono regioni locali dello spazio dei profili ambientali in cui la coerenza con \Wspm{} è forte. Non si può però affermare che la stessa relazione sia ampiamente applicabile a tutti i profili.
+
+La regola \TimeSlot{} $\rightarrow$ \Wspm, invece, ha supporto 0.24955. Questo valore indica che la condizione sul lato sinistro è molto più frequente. La sua confidenza di 0.858 e il lift di 1.113 mostrano che la fascia oraria fornisce una regolarità meno specifica ma più stabile in termini di copertura.
+
+\subsection{Permutation baseline e lift}
+
+La permutation baseline serve a distinguere le regole informative da quelle che potrebbero emergere per effetto della distribuzione marginale del RHS. Per ogni RFD, il lato destro viene permutato più volte e si calcola la confidenza media ottenuta in assenza dell'associazione originale tra tuple.
+
+Il lift maggiore di 1 per tutte le RFD indica che la confidenza osservata è superiore a quella attesa sotto permutazione. I valori non sono estremamente alti, ma sono coerenti con un dominio rumoroso e con regole approssimate. La prima regola ha lift 1.163; la seconda 1.155; la terza 1.151; la quarta 1.147; la quinta 1.113. Questi risultati indicano un vantaggio moderato ma consistente rispetto alla baseline.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.82\textwidth]{rfd_confidence_over_time.png}
-\caption{Continuous profiling mensile delle RFD scoperte da DiM$\varepsilon$.}
+\safeincludegraphics[width=0.78\textwidth]{figures/rfd_lift_vs_baseline.png}
+\caption{Confronto tra lift osservato e baseline permutata.}
 \end{figure}
 
-Le coppie con violazione pi\`u forte sono esportate per le prime due RFD. Per
-\texttt{station, PM10, NO2, O3, TEMP $\rightarrow$ WSPM}, il gruppo pi\`u
-numeroso tra le 200 coppie selezionate \`e Changping, gennaio 2016,
-\texttt{afternoon}: 9 coppie, differenza media di \texttt{WSPM} 2.22 e
-massima 3.40. Una violazione pu\`o riflettere anomalie, problemi di qualit\`a
-del dato o eventi non osservati; non viene automaticamente classificata come
-errore.
+\subsection{Bootstrap}
+
+Il bootstrap è stato applicato alle prime quattro RFD per valutare la stabilità empirica delle metriche. Per la prima regola, la confidenza media bootstrap è 0.930 e il lift medio è 1.207, con intervallo empirico al 95\% del lift pari a $[1.171, 1.244]$. Le altre tre regole mostrano lift medio tra 1.198 e 1.203.
+
+Questi risultati suggeriscono che le RFD locali non sono dovute a una singola configurazione accidentale del dataset. La stabilità bootstrap rafforza l'interpretazione delle regole come pattern locali riproducibili nella relazione analitica. Tuttavia, il bootstrap non elimina il limite del basso supporto: conferma la stabilità delle metriche, non trasforma una regola locale in una regola globale.
+
+\subsection{Validazione temporale}
+
+La validazione temporale divide il dataset in un periodo di train, 2013--2016, e un periodo di test, 2016--2017. Questa analisi è utile perché i dati ambientali possono cambiare nel tempo per stagionalità, evoluzione urbana, condizioni meteorologiche e variazioni nel comportamento delle sorgenti emissive.
+
+Per la prima RFD, la confidenza passa da 0.888 nel train a 0.937 nel test. Le altre tre RFD selezionate passano da valori compresi circa tra 0.866 e 0.873 nel train a valori compresi tra 0.948 e 0.953 nel test. La confidenza non diminuisce nel periodo successivo; anzi, aumenta. Questo risultato è positivo, ma va interpretato con cautela perché il supporto resta inferiore a 0.003.
+
+La validazione temporale indica quindi che le regole locali mantengono coerenza anche nel periodo successivo, ma non autorizza una generalizzazione forte all'intero fenomeno urbano. La conclusione corretta è che le RFD scoperte sono temporalmente stabili nelle condizioni in cui si applicano.
+
+\subsection{Continuous profiling mensile}
+
+Il continuous profiling mensile osserva l'evoluzione della confidenza delle RFD nel tempo. Questa analisi è coerente con l'idea che i metadati di profiling possano essere monitorati in scenari dinamici. Invece di considerare la RFD come un risultato statico, si valuta se la sua forza cambia nei diversi mesi.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{rfd_violations_by_month_station.png}
+\safeincludegraphics[width=0.82\textwidth]{figures/rfd_confidence_over_time.png}
+\caption{Continuous profiling mensile delle RFD scoperte da DiMepsilon.}
+\end{figure}
+
+Il grafico permette di individuare eventuali periodi in cui una regola si rafforza, si indebolisce o diventa meno applicabile. In un Urban Digital Twin operativo, questa informazione potrebbe essere usata per generare segnali di attenzione: non necessariamente allarmi automatici, ma indicazioni per approfondire condizioni locali, qualità del dato o cambiamenti nel contesto ambientale.
+
+\subsection{Analisi delle violazioni}
+
+Le violazioni sono importanti perché rendono le RFD operative dal punto di vista del data quality assessment. Una coppia violante è una coppia di profili che risulta simile sul lato sinistro della regola, ma non sul lato destro. Nel progetto sono state esportate le coppie con violazione più forte per le prime due RFD.
+
+Per la regola \texttt{station, PM10, NO2, O3, TEMP} $\rightarrow$ \texttt{WSPM}, il gruppo più numeroso tra le 200 coppie selezionate è relativo a Changping, gennaio 2016, fascia \texttt{afternoon}: 9 coppie, con differenza media di \Wspm{} pari a 2.22 e differenza massima pari a 3.40.
+
+\begin{figure}[H]
+\centering
+\safeincludegraphics[width=0.78\textwidth]{figures/rfd_violations_by_month_station.png}
 \caption{Concentrazione delle coppie violanti per mese e stazione.}
 \end{figure}
 
-\section{Discussione e conclusioni}
-Il workflow applica DiM$\varepsilon$ a profili settimanali di qualit\`a
-dell'aria organizzati per stazione e fascia oraria. L'aggregazione domain-driven
-usa tutte le osservazioni pulite e rende trattabile il costo quadratico delle
-matrici delle differenze; di conseguenza, le RFD descrivono la coerenza dei
-profili settimanali e non delle singole misure orarie.
+Una violazione non viene automaticamente interpretata come errore. Può indicare un'anomalia reale, un evento meteorologico locale, un problema di qualità del dato, una limitazione degli attributi osservati o una condizione non rappresentata nel dataset. Il valore della RFD, in questo caso, è fornire una lista ragionata di casi da ispezionare, non sostituire l'analisi di dominio.
 
-DiM$\varepsilon$ scopre 5 RFD minime, tutte orientate verso
-\texttt{WSPM}. Le metriche post-discovery chiariscono frequenza di
-applicabilit\`a, confidenza, vantaggio rispetto alla baseline permutata e
-stabilit\`a nel tempo. Quattro RFD hanno supporto molto basso e rappresentano
-regolarit\`a specifiche; \texttt{time\_slot $\rightarrow$ WSPM} \`e la
-regolarit\`a pi\`u generale.
+\section{Discussione}
 
-Il continuous profiling consente di osservare l'evoluzione temporale delle
-regole, mentre le coppie violanti forniscono casi concreti per successive
-verifiche su condizioni locali, qualit\`a dei dati o eventi non osservati.
-Nel quadro dell'UDT concettuale, il workflow supporta quindi monitoraggio e
-follow-up della coerenza ambientale. I risultati descrivono regolarit\`a
-approssimate e non relazioni causali.
+I risultati ottenuti mostrano che la scoperta di RFD può essere utilizzata come strumento di profilazione per trasformare dati ambientali numerici in metadati interpretabili. Il punto centrale del progetto non è la predizione di una variabile ambientale, ma l'estrazione di regolarità approssimate che descrivono quando due profili urbani possono essere considerati coerenti tra loro. In questo senso, le RFD scoperte rappresentano una forma di conoscenza intermedia: non sono semplici statistiche descrittive, ma non sono neppure modelli causali o predittivi. Sono vincoli rilassati, leggibili, associati a soglie esplicite e valutabili nel tempo.
+
+Un primo aspetto rilevante riguarda la natura locale delle regole scoperte. Quattro delle cinque RFD hanno supporto molto basso e confidenza elevata. Questo significa che non descrivono un comportamento globale dell'intero dataset, ma regolarità che emergono solo quando i profili sono già molto simili rispetto a più attributi ambientali. Dal punto di vista del progetto, questo risultato è coerente con la complessità del dominio: la qualità dell'aria non è governata da relazioni semplici e uniformi, ma da combinazioni locali di condizioni meteorologiche, temporali e spaziali. Le RFD più specifiche sono quindi utili non perché coprono molte coppie di profili, ma perché identificano zone dello spazio dei dati in cui la coerenza è forte.
+
+La regola con supporto più alto, \TimeSlot{} $\rightarrow$ \Wspm, ha invece un ruolo diverso. Essa descrive una regolarità più generale, meno selettiva, legata al contesto temporale intra-giornaliero. Rispetto alle altre regole, ha confidenza leggermente inferiore ma copertura molto maggiore. Questo contrasto tra regole locali e regola generale è uno dei risultati più interessanti del lavoro: il workflow non restituisce un unico tipo di conoscenza, ma evidenzia regolarità con livelli diversi di specificità. Le regole ad alto supporto sono più adatte a descrivere tendenze generali; le regole a basso supporto ma alta confidenza sono più adatte a individuare casi circoscritti di coerenza forte.
+
+Le metriche post-discovery aiutano a qualificare queste differenze. Il supporto chiarisce quanto spesso una regola è applicabile, la confidenza misura quanto spesso la regola è rispettata quando si applica, mentre il lift confronta la regola con una baseline permutata. Il fatto che tutte le RFD abbiano lift superiore a 1 indica che le dipendenze scoperte non sono semplicemente un effetto della distribuzione marginale di \Wspm. Tuttavia, i valori di lift sono moderati, non estremi. Questo suggerisce una lettura equilibrata: le regole contengono informazione, ma descrivono un fenomeno rumoroso e parzialmente osservato, come è normale nei dati ambientali reali.
+
+Anche la validazione temporale contribuisce a questa interpretazione. Le regole selezionate mantengono una confidenza elevata nel periodo di test 2016--2017, nonostante siano state valutate separando temporalmente i dati. Questo risultato è importante perché riduce il rischio che le RFD siano soltanto artefatti del periodo complessivo analizzato. Allo stesso tempo, la stabilità temporale va letta insieme al supporto: una regola può essere stabile nel tempo e rimanere comunque locale. La robustezza osservata riguarda quindi la qualità della regola nelle condizioni in cui essa si applica, non la sua validità universale.
+
+Il bootstrap fornisce un ulteriore controllo sulla stabilità empirica delle metriche. I risultati indicano che le RFD principali non dipendono da una singola configurazione delle tuple, ma mantengono valori di confidenza e lift coerenti anche sotto ricampionamento. Questo rafforza l'uso delle RFD come metadati di profiling: una regola instabile sarebbe poco utile per descrivere il dataset, mentre una regola che mantiene prestazioni simili sotto bootstrap può essere considerata un pattern più affidabile.
+
+La parte di continuous profiling estende il valore del lavoro oltre la scoperta statica. Monitorare la confidenza delle RFD nel tempo consente di osservare se una regolarità rimane stabile, si indebolisce o si rafforza in specifici periodi. In un contesto urbano, questa prospettiva è particolarmente utile perché i dati ambientali sono soggetti a stagionalità, variazioni meteorologiche, cambiamenti locali e possibili problemi nei sensori. Una RFD non è quindi solo un risultato finale, ma può diventare un oggetto da monitorare nel tempo. Questo collega il progetto ai temi del continuous profiling: non basta scoprire metadati una volta, ma è utile osservare come tali metadati evolvono.
+
+L'analisi delle violazioni completa questa interpretazione. Le coppie violanti non devono essere lette automaticamente come errori, ma come casi in cui la coerenza attesa dalla RFD non si verifica. Questo è utile perché sposta l'attenzione dalla sola regola aggregata ai casi concreti che la contraddicono. In un workflow di data profiling, tali casi possono diventare punti di partenza per analisi successive: controllo della qualità dei dati, verifica di condizioni meteorologiche particolari, identificazione di finestre temporali anomale o analisi di eventi non rappresentati dagli attributi disponibili.
+
+Nel complesso, il progetto mostra che le RFD sono adatte a descrivere regolarità approssimate in dati ambientali aggregati. Il loro valore principale sta nella combinazione di tre proprietà: sono interpretabili, perché hanno una forma logica leggibile; sono flessibili, perché usano soglie di similarità invece dell'uguaglianza esatta; sono monitorabili, perché le loro metriche possono essere valutate su finestre temporali diverse. Questa combinazione le rende coerenti con un'impostazione di Urban Digital Twin concettuale, in cui il sistema non deve soltanto raccogliere dati, ma anche produrre metadati utili a comprendere e controllare l'evoluzione del dominio osservato.
+
+La discussione dei risultati suggerisce quindi una conclusione metodologica: il workflow è più utile come strumento di profilazione e supporto all'ispezione che come modello decisionale autonomo. Le RFD non spiegano causalmente la qualità dell'aria e non producono direttamente allarmi. Forniscono invece un livello strutturato di conoscenza sui dati, utile per descrivere regolarità, misurare stabilità, confrontare periodi e selezionare casi da approfondire. In questo senso, il contributo del progetto è l'integrazione tra discovery di RFD, metriche di robustezza e analisi temporale in un workflow coerente per dati ambientali urbani.
+
+
+\section{Limitazioni}
+
+Il progetto presenta alcune limitazioni. La prima riguarda il dataset: sono state usate solo due stazioni, quindi i risultati non possono essere generalizzati a tutta Pechino o ad altre città senza ulteriori esperimenti. La seconda riguarda la scala temporale: l'aggregazione settimanale rende i profili più robusti, ma perde informazione sulle dinamiche orarie puntuali. La terza riguarda il supporto: quattro RFD hanno supporto molto basso e devono essere interpretate come regolarità locali.
+
+Un'ulteriore limitazione riguarda le soglie di similarità. Le soglie sono domain-specific e influenzano il risultato della discovery. Soglie più strette produrrebbero meno coppie simili; soglie più larghe aumenterebbero l'applicabilità ma potrebbero rendere le regole meno precise. Una possibile estensione sarebbe confrontare sistematicamente più configurazioni di soglie.
+
+Infine, il workflow non include un modello causale né un sistema di allarme automatico. Le violazioni sono esportate come casi da analizzare, non come errori certi. Questa scelta è intenzionale: in un contesto ambientale, una differenza inattesa può avere spiegazioni fisiche legittime e richiede sempre interpretazione di dominio.
+
+\section{Conclusioni}
+
+Il progetto ha costruito un workflow di data profiling per dati ambientali storici, utilizzando Relaxed Functional Dependencies come metadati interpretabili di coerenza. Le osservazioni orarie del \textit{Beijing Multi-Site Air Quality Data Set} sono state pulite, profilate e aggregate in una relazione analitica di profili settimanali per stazione e fascia oraria. Su questa relazione è stato applicato \Dime{} con soglie di similarità definite per il dominio.
+
+Il risultato principale è la scoperta di 5 RFD minime, tutte orientate verso \Wspm. Quattro regole descrivono regolarità locali ad alta confidenza e basso supporto; una regola, \TimeSlot{} $\rightarrow$ \Wspm, rappresenta una regolarità più generale. Le analisi post-discovery mostrano che le regole hanno lift superiore alla baseline permutata, stabilità bootstrap e buona tenuta nello split temporale, pur mantenendo i limiti interpretativi legati al supporto.
+
+Il continuous profiling mensile e l'analisi delle violazioni mostrano come le RFD possano essere usate non solo come risultato statico, ma come strumenti per monitorare l'evoluzione delle regolarità e individuare casi da approfondire. In una prospettiva di Urban Digital Twin concettuale, questo workflow supporta la costruzione di conoscenza interpretabile dai dati ambientali, mantenendo chiari i confini tra regolarità descrittiva, anomalia potenziale e causalità.
 
 \begin{thebibliography}{9}
+
 \bibitem{uci}
 S. Chen.
 \newblock \textit{Beijing Multi-Site Air Quality} [Dataset].
@@ -310,8 +385,7 @@ S. Chen.
 \bibitem{rfd-survey}
 L. Caruccio, V. Deufemia, and G. Polese.
 \newblock Relaxed Functional Dependencies -- A Survey of Approaches.
-\newblock \textit{IEEE Transactions on Knowledge and Data Engineering},
-28(1):147--165, 2016.
+\newblock \textit{IEEE Transactions on Knowledge and Data Engineering}, 28(1):147--165, 2016.
 
 \bibitem{rfd-mining}
 L. Caruccio, V. Deufemia, and G. Polese.
@@ -319,23 +393,16 @@ L. Caruccio, V. Deufemia, and G. Polese.
 \newblock \textit{Data Mining and Knowledge Discovery}, 34(2):443--477, 2020.
 \newblock DOI: \url{https://doi.org/10.1007/s10618-019-00667-7}
 
-\bibitem{rfd-discussion}
-L. Caruccio, V. Deufemia, and G. Polese.
-\newblock Lattice-based Discovery of Hybrid Relaxed Functional Dependencies
-(Discussion Paper).
-\newblock In \textit{SEBD 2020}, CEUR Workshop Proceedings, Vol. 2646, 2020.
-\newblock \url{https://ceur-ws.org/Vol-2646/24-paper.pdf}
+\bibitem{tane}
+Y. Huhtala, J. Karkkainen, P. Porkka, and H. Toivonen.
+\newblock TANE: An Efficient Algorithm for Discovering Functional and Approximate Dependencies.
+\newblock \textit{The Computer Journal}, 42(2):100--111, 1999.
 
-\bibitem{lecture3}
-KDIID course.
-\newblock \textit{Lecture 3: Relaxed Functional Dependencies}.
-\newblock Course material, slides 29--41.
+\bibitem{kdiid}
+L. Caruccio and G. Polese.
+\newblock \textit{Knowledge Discovery from IoT and Industrial Data for Smart and Connected Systems}.
+\newblock Course material, PhD course, University of Salerno.
 
-\bibitem{dime-software}
-DASTLab.
-\newblock \textit{DiMe Software Repository}.
-\newblock Official JAR, datasets, and replication README.
-\newblock \url{https://dastlab.github.io/dime/}
 \end{thebibliography}
 
 \end{document}
